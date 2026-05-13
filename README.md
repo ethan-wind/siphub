@@ -35,7 +35,7 @@
 
 ## 依赖
 
-- PostgreSQL 16
+- MySQL
 
 # 部署
 
@@ -46,8 +46,8 @@ docker run -d --name=siphub \
     -e DBUser=root \
     -e DBPasswd=mypass \
     -e DBAddr=1.2.3.4 \
-    -e DBPort=5432 \
-    -e DBName=postgres \
+    -e DBPort=3306 \
+    -e DBName=siphub \
     -e dataKeepDays=10 \
     -p 3000:3000 \
     ghcr.io/wangduanduan/siphub:latest
@@ -58,8 +58,8 @@ docker run -d --name=siphub \
 - DBUser: 数据库用户名， 默认wangduanduan
 - DBPasswd: 数据库密码
 - DBAddr: 数据库地址，默认127.0.0.1
-- DBPort: 数据库端口，默认5432,
-- DBName: 数据库名，默认postgres,
+- DBPort: 数据库端口，默认3306,
+- DBName: 数据库名，默认siphub,
 - LogLevel: 日志级别, 默认debug
 - QueryLimit: 一次性查询的行数，默认10
 - dataKeepDays: 数据保留几天，默认3

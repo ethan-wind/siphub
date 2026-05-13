@@ -1,103 +1,223 @@
 <!doctype html>
-<html lang="en">
-
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SIP-Hub</title>
-    <link href="/bootstrap-5.3.0/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <script src="/htmx-2.0.2/htmx.js"></script>
+    <title>SIP 详情</title>
     <script src="/lib/sequence-diagram-web.min.js"></script>
     <script src="/lib/jquery.min.js"></script>
     <link rel="stylesheet" href="/css/diagram.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 13px;
+            background: #f5f7fa;
+            color: #1a202c;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
+        /* ── Top bar ── */
+        .topbar {
+            flex-shrink: 0;
+            background: #fff;
+            border-bottom: 1px solid #e2e6ed;
+            padding: 0 20px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topbar a {
+            color: #3b6ef8;
+            text-decoration: none;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .topbar a:hover { text-decoration: underline; }
+        .topbar-sep { color: #c8cdd6; }
+        .topbar-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a202c;
+            font-family: 'SF Mono', monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .msg-count {
+            margin-left: auto;
+            font-size: 11px;
+            color: #8a94a6;
+            background: #f0f2f5;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        /* ── Main layout ── */
+        .main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            gap: 0;
+        }
+
+        /* ── Diagram pane ── */
+        .pane-diagram {
+            flex: 0 0 55%;
+            overflow: auto;
+            padding: 20px;
+            border-right: 1px solid #e2e6ed;
+            background: #fff;
+        }
+        #seq-a svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ── Message list pane ── */
+        .pane-list {
+            flex: 0 0 45%;
+            overflow-y: auto;
+            background: #f5f7fa;
+        }
+
+        .msg-item {
+            border-bottom: 1px solid #e2e6ed;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .msg-item:hover { background: #eef1f8; }
+        .msg-item.active { background: #eef1f8; }
+
+        .msg-item-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px 4px;
+        }
+        .msg-index {
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            background: #8a94a6;
+            border-radius: 4px;
+            padding: 1px 6px;
+            flex-shrink: 0;
+        }
+        .msg-method {
+            font-size: 12px;
+            font-weight: 700;
+            color: #3b6ef8;
+        }
+        .msg-meta {
+            margin-left: auto;
+            font-size: 11px;
+            color: #8a94a6;
+            font-family: 'SF Mono', monospace;
+            white-space: nowrap;
+        }
+        .msg-raw {
+            display: none;
+            margin: 0 16px 8px;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px solid #e2e6ed;
+            border-radius: 7px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #334155;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .msg-item.active .msg-raw { display: block; }
+
+        /* scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+        /* diagram focus/hover already in diagram.css */
+    </style>
 </head>
-
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12"></div>
-        </div>
-        <div class="row">
-            <div class="col-md-8" style="max-height: 800px;overflow-y: scroll;">
-                <div id="seq-a"></div>
-            </div>
-            <div class="col-md-4" style="max-height: 800px;overflow-y: scroll;">
-                <div class="list-group">
 
-<%for ( let i = 0; i < table.length; i++ ) { let v = table[i] %>
-    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">
-                        <a id="raw-sip-<%- i %>" data-id="<%- i %>" data-cseq="<%- v.cseq_number %>" href="#" class="list-group-item list-group-item-action" aria-current="true">
-                            F<%= i %> <%= v.sip_method %> 
-                        </a>
-                        </h5>
-                        <small><%- v.create_time %> <%= v.sip_protocl %>/<%- v.msg_len %></small>
-    </div>
-<pre>
-<%= v.raw_msg %>
-</pre>
-                    
-<%} %>
-                  
-                  </div>
+<div class="topbar">
+    <a href="javascript:history.back()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        返回
+    </a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-title"><%= table[0] ? table[0].sip_call_id : '' %></span>
+    <span class="msg-count"><%= table.length %> 条消息</span>
+</div>
 
-            </div>
-        </div>
+<div class="main">
+    <div class="pane-diagram">
+        <div id="seq-a"></div>
     </div>
 
-</body>
+    <div class="pane-list">
+        <% for (let i = 0; i < table.length; i++) { let v = table[i]; %>
+        <div class="msg-item" id="msg-<%= i %>" data-id="<%= i %>">
+            <div class="msg-item-header">
+                <span class="msg-index">F<%= i %></span>
+                <span class="msg-method"><%= v.sip_method %></span>
+                <span class="msg-meta"><%= v.create_time %> &nbsp;<%- v.sip_protocl %>/<%= v.msg_len %>B</span>
+            </div>
+            <pre class="msg-raw"><%= v.raw_msg %></pre>
+        </div>
+        <% } %>
+    </div>
+</div>
 
 <script>
     const code = `<%- seq %>`
     const jq = jQuery
     const sd = SequenceDiagram
-    const lineColors = [
-        '#8A2BE2',
-        '#D2691E',
-        '#5F9EA0',
-        '#CD5C5C',
-        '#FF69B4',
-        '#90EE90',
-        '#FFA07A',
-        '#20B2AA',
-        '#87CEFA',
-        '#32CD32',
-        '#7B68EE',
-        '#C71585',
-        '#808000',
-        '#FF4500',
-        '#DA70D6',
-        '#00FF7F',
-        '#EE82EE',
-        '#9ACD32',
-    ]
-
-
-    const flow = [<%- table.map((it)=>it.cseq_number) %>]
+    const lineColors = ['#8A2BE2','#D2691E','#5F9EA0','#CD5C5C','#FF69B4','#90EE90','#FFA07A','#20B2AA','#87CEFA','#32CD32','#7B68EE','#C71585','#808000','#FF4500','#DA70D6','#00FF7F','#EE82EE','#9ACD32']
+    const flow = [<%- table.map(it => it.cseq_number) %>]
 
     let gram
 
-    function init_diagram(){
-        gram = new sd(code, {
-            container: document.getElementById('seq-a')
-        })
-        // gram.setHighlight(1)
-        gram.addEventListener('click', (e)=>{
+    function setActive(id) {
+        jq('.msg-item').removeClass('active')
+        const el = document.getElementById(`msg-${id}`)
+        if (el) {
+            el.classList.add('active')
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+    }
+
+    function init_diagram() {
+        gram = new sd(code, { container: document.getElementById('seq-a') })
+
+        gram.addEventListener('click', e => {
             if (e.type === 'connect') {
                 gram.setHighlight(e.ln)
-                let el = document.getElementById(`raw-sip-${e.ln}`)
-                if (el) el.scrollIntoView()
+                setActive(e.ln)
             }
-        });
-
-        jq('a.list-group-item').on('click', (e)=>{
-            let id = e.currentTarget.dataset.id
-            gram.setHighlight(parseInt(id))
-            jq('g.region.focus')[0].scrollIntoView()
         })
 
-        jq(`g.region:has(polygon)`).each(function (index) {
+        jq('.msg-item').on('click', function () {
+            const id = parseInt(this.dataset.id)
+            gram.setHighlight(id)
+            setActive(id)
+            jq('g.region.focus')[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        })
+
+        jq('g.region:has(polygon)').each(function (index) {
             const color = lineColors[flow[index] % lineColors.length]
             jq(this).find('path').first().css('stroke', color)
             jq(this).find('polygon').css('fill', color)
@@ -107,5 +227,5 @@
 
     jq(document).ready(init_diagram)
 </script>
-
+</body>
 </html>

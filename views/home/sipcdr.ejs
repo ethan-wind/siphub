@@ -1,48 +1,44 @@
-<div class="container-fluid">
-    <div class="col-12" id="cdr">
-        <table class="table table-striped">
-            <thead>
-              <tr>
-                <th scope="col">序号</th>
-                <th scope="col">开始时间</th>
-                <th scope="col">结束时间</th>
-                <th scope="col">源地址</th>
-                <th scope="col">目标地址</th>
-                <th scope="col">Method</th>
-                <th scope="col">持续时长</th>
-                <th scope="col">Call-ID</th>
-                <th scope="col">UID</th>
-                <th scope="col">主叫</th>
-                <th scope="col">被叫</th>
-                <th scope="col">消息数</th>
-                <th scope="col">临时响应</th>
-                <th scope="col">最终响应</th>
-                <th scope="col">UA</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%for ( let i = 0; i < table.length; i++ ) { let v = table[i] %>
-                <tr>
-                  <th scope="row"><%= i %></th>
-                  <td><%= v.startTime %></td>
-                  <td><%= v.stopTime %></td>
-                  <td><%= v.srcHost %></td>
-                  <td><%= v.dstHost %></td>
-                  <td><%= v.cseq_method %></td>
-                  <td><%= v.duration %></td>
-                  <td>
-                    <a href="/api/call?id=<%= v.CallID %>&day=<%= v.day %>" target="_blank"> <%= v.CallID %> </a>
-                  </td>
-                  <td><%= v.uid %></td>
-                  <td><%= v.caller %></td>
-                  <td><%= v.callee %></td>
-                  <td><%= v.msgTotal %></td>
-                  <td><%= v.tempCode %></td>
-                  <td><%= v.finalCode %></td>
-                  <td><%= v.UA %></td>
-                </tr>
-              <%} %>
-            </tbody>
-          </table>
-    </div>
+<% if (!table || table.length === 0) { %>
+<div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <div>暂无数据，请调整筛选条件后重新搜索</div>
 </div>
+<% } else { %>
+<div class="table-wrap">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>时间</th>
+                <th>主叫号码</th>
+                <th>主叫域名</th>
+                <th>被叫号码</th>
+                <th>被叫域名</th>
+                <th>User Agent</th>
+                <th>消息数</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% for (let i = 0; i < table.length; i++) { let v = table[i];
+               const callerDomain = (v.srcHost || '').replace(/_/g, ':');
+               const calleeDomain = (v.dstHost || '').replace(/_/g, ':');
+            %>
+            <tr>
+                <td class="row-num"><%= i %></td>
+                <td class="mono"><%= v.startTime %></td>
+                <td>
+                    <a class="callid-link" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.caller %></a>
+                </td>
+                <td class="mono" style="color:var(--text-muted)"><%= callerDomain %></td>
+                <td>
+                    <a class="callid-link" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.callee %></a>
+                </td>
+                <td class="mono" style="color:var(--text-muted)"><%= calleeDomain %></td>
+                <td style="color:var(--text-muted);font-size:11px"><%= v.UA %></td>
+                <td class="mono"><%= v.msgTotal %></td>
+            </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+<% } %>

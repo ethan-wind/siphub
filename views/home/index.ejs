@@ -1,18 +1,222 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SIP-Hub</title>
-    <link href="/bootstrap-5.3.0/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <title>SIPHub</title>
+    <link href="/bootstrap-5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="/htmx-2.0.2/htmx.js"></script>
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --surface2: #f0f2f5;
+            --border: #e2e6ed;
+            --accent: #3b6ef8;
+            --accent-glow: rgba(59,110,248,0.12);
+            --text: #1a202c;
+            --text-muted: #8a94a6;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 13px;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            background: var(--surface) !important;
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 52px;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent) !important;
+            letter-spacing: 0.5px;
+        }
+        .nav-link {
+            color: var(--text-muted) !important;
+            font-size: 13px;
+            padding: 6px 14px !important;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--text) !important;
+            background: var(--surface2);
+        }
+
+        /* ── Search Panel ── */
+        .search-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 20px 24px;
+        }
+        .search-panel .form-label {
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 5px;
+        }
+        .form-control, .form-select {
+            background: var(--bg) !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text) !important;
+            border-radius: 7px;
+            font-size: 13px;
+            height: 34px;
+            padding: 0 10px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px var(--accent-glow) !important;
+            outline: none;
+        }
+        .form-control::placeholder { color: var(--text-muted); }
+        .form-select option { background: var(--surface2); }
+
+        .btn-search {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 7px 22px;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+        .btn-search:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-search:active { transform: translateY(0); }
+
+        /* ── Table ── */
+        .table-wrap {
+            margin: 0 24px 24px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .table {
+            margin: 0;
+            border-collapse: collapse;
+        }
+        .table thead tr {
+            background: var(--surface2);
+        }
+        .table thead th {
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
+            border: none;
+            white-space: nowrap;
+        }
+        .table tbody tr {
+            border-top: 1px solid var(--border);
+            transition: background 0.1s;
+        }
+        .table tbody tr:hover { background: var(--surface2); }
+        .table tbody td {
+            padding: 9px 12px;
+            border: none;
+            color: var(--text);
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        .table tbody td.mono {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+        }
+
+        /* badges */
+        .badge-method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .badge-INVITE  { background: rgba(59,110,248,0.10); color: #2d5be3; }
+        .badge-REGISTER{ background: rgba(5,150,105,0.10);  color: #047857; }
+        .badge-BYE     { background: rgba(220,38,38,0.10);  color: #b91c1c; }
+        .badge-OTHER   { background: rgba(138,148,166,0.15);color: #5a6478; }
+
+        .code-final {
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .code-2xx { color: var(--success); }
+        .code-1xx { color: var(--warning); }
+        .code-4xx, .code-5xx { color: var(--danger); }
+
+        .callid-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-family: 'SF Mono', monospace;
+            font-size: 11px;
+            max-width: 220px;
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+        }
+        .callid-link:hover { text-decoration: underline; color: #7b9fff; }
+
+        .row-num {
+            color: var(--text-muted);
+            font-size: 11px;
+            font-family: 'SF Mono', monospace;
+            min-width: 28px;
+        }
+
+        /* htmx loading */
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: inline-block; }
+        .htmx-request.btn-search { opacity: 0.7; pointer-events: none; }
+
+        /* empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state svg { opacity: 0.3; margin-bottom: 12px; }
+
+        /* scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
 </head>
 
 <body>
     <%- include('navbar') %>
     <%- include('search', {'day':day, 'start': start, 'stop': stop}) %>
-    <%- include('sipcdr', {'table': table}) %>
+    <div id="cdr">
+        <%- include('sipcdr', {'table': table}) %>
+    </div>
 </body>
 
 </html>

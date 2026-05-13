@@ -1,10 +1,12 @@
 import { Router } from "express"
 import { logger } from "../logger.mjs"
 import { queryRecord, queryById } from "../db.mjs"
-import { table } from "console"
 import { createSeqHtml } from "../util.mjs"
+import { requireApiAuth } from "../auth.mjs"
 
 export const route = Router()
+
+route.use(requireApiAuth)
 
 function asyncHandler(fn) {
     return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)

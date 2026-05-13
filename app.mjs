@@ -6,6 +6,19 @@ import { route } from './router/api.mjs'
 import { queryRecord } from './db.mjs'
 import { startCron } from './cron.mjs'
 import { AppEnv } from './env.mjs'
+import {
+  checkCredentials,
+  clearAuthCookie,
+  clearCaptchaCookie,
+  createAuthToken,
+  createCaptcha,
+  isAuthenticated,
+  requirePageAuth,
+  renderCaptchaSvg,
+  setAuthCookie,
+  setCaptchaCookie,
+  verifyCaptcha
+} from './auth.mjs'
 
 const app = express()
 
@@ -25,7 +38,7 @@ function asyncHandler(fn) {
   return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
 }
 
-app.get('/', asyncHandler(async function (req, res) {
+app.get('/', requirePageAuth, asyncHandler(async function (req, res) {
   let n = dayjs()
   let day = n.format('YYYY-MM-DD')
   let start = n.subtract(10, 'm').format('HH:mm:ss')
@@ -50,6 +63,39 @@ app.get('/', asyncHandler(async function (req, res) {
   })
 }))
 
+app.get('/login', function (req, res) {
+  if (isAuthenticated(req)) return res.redirect('/')
+  res.render('home/login', { error: '' })
+})
+
+app.post('/login', function (req, res) {
+  const { username = '', password = '', captcha = '', remember } = req.body
+
+  if (!verifyCaptcha(req, captcha)) {
+    return res.status(401).render('home/login', { error: '验证码错误或已过期' })
+  }
+
+  if (!checkCredentials(username, password)) {
+    return res.status(401).render('home/login', { error: '用户名或密码错误' })
+  }
+
+  const auth = createAuthToken(username, remember === 'on')
+  setAuthCookie(res, auth.token, auth.maxAge)
+  clearCaptchaCookie(res)
+  res.redirect('/')
+})
+
+app.post('/logout', function (req, res) {
+  clearAuthCookie(res)
+  res.redirect('/login')
+})
+
+app.get('/captcha', function (req, res) {
+  const captcha = createCaptcha()
+  setCaptchaCookie(res, captcha.token)
+  res.type('svg').send(renderCaptchaSvg(captcha.text))
+})
+
 app.use('/api', route)
 
 app.use((err, req, res, next) => {
@@ -57,4 +103,4 @@ app.use((err, req, res, next) => {
   res.status(500).send('Internal Server Error')
 })
 
-app.listen(3000)
+app.listen(AppEnv.Port)

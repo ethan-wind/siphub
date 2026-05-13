@@ -27,6 +27,7 @@
                 <input type="hidden" name="stop"  id="inputStop"  value="<%= stop %>">
                 <div class="time-popup" id="timePopup">
                     <div class="time-popup-header"><div>开始时间</div><div>结束时间</div></div>
+                    <div class="time-popup-preview"><div id="previewStart"></div><div id="previewEnd"></div></div>
                     <div class="time-cols">
                         <div class="time-col-group">
                             <div class="time-col" id="col-sh"></div>
@@ -49,6 +50,10 @@
                     </div>
                 </div>
             </div>
+            <button type="button" class="btn btn-default" id="btnLast15Min" style="margin-left:6px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l3.5 2"/></svg>
+                最近15分钟
+            </button>
         </div>
 
         <input type="hidden" name="msg_min" value="1">
@@ -71,6 +76,13 @@
     let ev = parseTime('<%= stop %>');
     let tmp = { s: [...sv], e: [...ev] };
 
+    const previewStart = document.getElementById('previewStart');
+    const previewEnd   = document.getElementById('previewEnd');
+    function updatePreview() {
+        previewStart.textContent = fmtTime(...tmp.s);
+        previewEnd.textContent   = fmtTime(...tmp.e);
+    }
+
     function buildCol(el, max, getVal, setVal) {
         const prev = document.createElement('span');
         const curr = document.createElement('span');
@@ -86,8 +98,8 @@
         }
         render();
 
-        prev.addEventListener('click', () => { setVal((getVal() - 1 + max) % max); render(); });
-        next.addEventListener('click', () => { setVal((getVal() + 1) % max); render(); });
+        prev.addEventListener('click', () => { setVal((getVal() - 1 + max) % max); render(); updatePreview(); });
+        next.addEventListener('click', () => { setVal((getVal() + 1) % max); render(); updatePreview(); });
 
         return render;
     }
@@ -114,6 +126,7 @@
     function openPopup() {
         tmp = { s: [...sv], e: [...ev] };
         cols.forEach(r => r());
+        updatePreview();
         popup.classList.add('open');
     }
 
@@ -122,5 +135,22 @@
     document.getElementById('btnConfirm').addEventListener('click', () => { sv = [...tmp.s]; ev = [...tmp.e]; updateDisplay(); popup.classList.remove('open'); });
     document.getElementById('btnCancel').addEventListener('click', () => popup.classList.remove('open'));
     document.addEventListener('click', e => { if (!display.closest('.time-picker-wrap').contains(e.target)) popup.classList.remove('open'); });
+
+    document.getElementById('btnLast15Min').addEventListener('click', () => {
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+        const endSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        const startSec = Math.max(0, endSec - 900);
+        const toHMS = sec => [Math.floor(sec / 3600), Math.floor((sec % 3600) / 60), sec % 60];
+        sv = toHMS(startSec);
+        ev = toHMS(endSec);
+        tmp = { s: [...sv], e: [...ev] };
+        cols.forEach(r => r());
+        updatePreview();
+        const dayInput = document.querySelector('input[name="day"]');
+        if (dayInput) dayInput.value = todayStr;
+        updateDisplay();
+        popup.classList.remove('open');
+    });
 })();
 </script>

@@ -68,6 +68,18 @@
             background: var(--accent-light);
         }
         .topbar-tab svg { width: 14px; height: 14px; }
+        .logout-form { margin-left: auto; }
+        .logout-btn {
+            height: 30px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--surface);
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .logout-btn:hover { background: var(--bg); color: var(--text); }
 
         /* ── Search bar ── */
         .search-bar {
@@ -228,6 +240,12 @@
             display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
             text-align: center; font-size: 11px; font-weight: 600;
             color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .time-popup-preview {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+            text-align: center; font-size: 15px; font-weight: 600;
+            color: var(--accent); font-variant-numeric: tabular-nums;
             margin-bottom: 8px;
         }
         .time-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }

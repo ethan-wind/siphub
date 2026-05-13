@@ -9,24 +9,25 @@
     <link rel="stylesheet" href="/css/diagram.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif;
             font-size: 13px;
             background: #f5f7fa;
             color: #1f2329;
-            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .topbar {
+            flex: 0 0 48px;
             background: #fff;
             border-bottom: 1px solid #e4e7ed;
-            padding: 0 20px;
-            height: 48px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
             gap: 10px;
-            position: sticky;
-            top: 0;
             z-index: 100;
         }
         .topbar a {
@@ -50,34 +51,31 @@
         }
 
         .page-body {
+            flex: 1 1 auto;
             display: flex;
-            gap: 16px;
-            padding: 20px;
-            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            min-height: 0;
+            overflow: hidden;
         }
 
         /* ── Diagram area ── */
         .diagram-wrap {
-            flex: 0 0 auto;
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 100%;
             background: #fff;
             border: 1px solid #e4e7ed;
             border-radius: 6px;
             overflow: auto;
             padding: 16px;
         }
+        #seq-a { display: inline-block; min-width: 100%; }
         #seq-a svg { display: block; }
 
-        /* ── Detail panel ── */
-        .detail-panel {
-            flex: 1 1 auto;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
+        /* ── Toggle button (in topbar) ── */
         .detail-toggle {
-            align-self: flex-end;
-            margin-bottom: 10px;
+            margin-left: auto;
             display: inline-flex;
             align-items: center;
             gap: 5px;
@@ -88,11 +86,20 @@
             border: 1px solid #e4e7ed;
             border-radius: 4px;
             cursor: pointer;
-            transition: background 0.1s;
+            transition: background 0.1s, color 0.1s, border-color 0.1s;
         }
         .detail-toggle:hover { background: #f0f2f5; }
+        .detail-toggle.active { color: #4e6ef2; border-color: #4e6ef2; background: #eef1fe; }
 
-        .msg-list { display: flex; flex-direction: column; gap: 0; }
+        /* ── Detail sidebar ── */
+        .msg-list {
+            flex: 0 0 440px;
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
         .msg-list.hidden { display: none; }
 
         .msg-item {
@@ -168,6 +175,10 @@
     </a>
     <span class="topbar-sep">/</span>
     <span class="topbar-title"><%= table[0] ? table[0].sip_call_id : '' %></span>
+    <button class="detail-toggle" id="detailToggle">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h6M3 15h6"/></svg>
+        <span id="detailToggleLabel">显示信令详情</span>
+    </button>
 </div>
 
 <div class="page-body">
@@ -175,23 +186,17 @@
         <div id="seq-a"></div>
     </div>
 
-    <div class="detail-panel">
-        <button class="detail-toggle" id="detailToggle">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h6M3 15h6"/></svg>
-            显示信令详情
-        </button>
-        <div class="msg-list hidden" id="msgList">
-            <% for (let i = 0; i < table.length; i++) { let v = table[i]; %>
-            <div class="msg-item" id="msg-<%= i %>" data-id="<%= i %>">
-                <div class="msg-item-header">
-                    <span class="msg-index">F<%= i %></span>
-                    <span class="msg-method"><%= v.sip_method %></span>
-                    <span class="msg-meta"><%= v.create_time %> &nbsp;<%= v.sip_protocl %>/<%= v.msg_len %>B</span>
-                </div>
-                <pre class="msg-raw"><%= v.raw_msg %></pre>
+    <div class="msg-list hidden" id="msgList">
+        <% for (let i = 0; i < table.length; i++) { let v = table[i]; %>
+        <div class="msg-item" id="msg-<%= i %>" data-id="<%= i %>">
+            <div class="msg-item-header">
+                <span class="msg-index">F<%= i %></span>
+                <span class="msg-method"><%= v.sip_method %></span>
+                <span class="msg-meta"><%= v.create_time %> &nbsp;<%= v.sip_protocl %>/<%= v.msg_len %>B</span>
             </div>
-            <% } %>
+            <pre class="msg-raw"><%= v.raw_msg %></pre>
         </div>
+        <% } %>
     </div>
 </div>
 
@@ -205,10 +210,12 @@
 
     // toggle detail panel
     const msgList = document.getElementById('msgList')
-    document.getElementById('detailToggle').addEventListener('click', function () {
+    const detailToggle = document.getElementById('detailToggle')
+    const detailToggleLabel = document.getElementById('detailToggleLabel')
+    detailToggle.addEventListener('click', function () {
         const hidden = msgList.classList.toggle('hidden')
-        this.querySelector('span') || (this.lastChild.textContent = hidden ? ' 显示信令详情' : ' 隐藏信令详情')
-        this.childNodes[2].textContent = hidden ? ' 显示信令详情' : ' 隐藏信令详情'
+        detailToggleLabel.textContent = hidden ? '显示信令详情' : '隐藏信令详情'
+        detailToggle.classList.toggle('active', !hidden)
     })
 
     function setActive(id) {
@@ -236,15 +243,6 @@
             jq(this).find('polygon').css('fill', color)
             jq(this).find('text').css('fill', color)
         })
-
-        // scale SVG down to 65%
-        const svg = document.querySelector('#seq-a svg')
-        if (svg) {
-            const w = parseFloat(svg.getAttribute('width')  || svg.viewBox.baseVal.width)
-            const h = parseFloat(svg.getAttribute('height') || svg.viewBox.baseVal.height)
-            svg.setAttribute('width',  w * 0.65)
-            svg.setAttribute('height', h * 0.65)
-        }
     }
 
     jq(document).ready(init_diagram)

@@ -212,7 +212,7 @@
             display: flex; align-items: center; gap: 6px;
             font-size: 13px; color: var(--text);
             background: var(--surface); cursor: pointer;
-            white-space: nowrap; min-width: 210px;
+            white-space: nowrap; min-width: 240px;
             transition: border-color 0.15s;
         }
         .time-display:focus { outline: none; border-color: var(--accent); }
@@ -232,20 +232,16 @@
         }
         .time-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .time-col-group { display: flex; gap: 4px; justify-content: center; }
-        .time-col { width: 36px; height: 160px; overflow: hidden; position: relative; cursor: ns-resize; }
-        .time-col::before, .time-col::after {
-            content: ''; position: absolute; left: 0; right: 0; height: 52px; z-index: 1; pointer-events: none;
-        }
-        .time-col::before { top: 0; background: linear-gradient(to bottom, #fff 60%, transparent); }
-        .time-col::after  { bottom: 0; background: linear-gradient(to top, #fff 60%, transparent); }
-        .time-col-inner { display: flex; flex-direction: column; align-items: center; transition: transform 0.15s ease; }
-        .time-col-inner span {
+        .time-col { width: 36px; display: flex; flex-direction: column; align-items: center; gap: 0; }
+        .time-col span {
             height: 32px; line-height: 32px; font-size: 14px; font-weight: 500;
             color: var(--text-secondary); width: 36px; text-align: center; border-radius: 4px;
-            flex-shrink: 0; transition: color 0.1s;
+            cursor: pointer; user-select: none; transition: background 0.1s, color 0.1s;
         }
-        .time-col-inner span.selected { color: var(--accent); font-weight: 700; }
-        .time-col-sep { line-height: 160px; font-size: 16px; color: var(--text-secondary); align-self: center; }
+        .time-col span:hover { background: var(--accent-light); }
+        .time-col span.selected { color: var(--accent); font-weight: 700; }
+        .time-col span.adj { font-size: 13px; color: #c8cdd6; }
+        .time-col-sep { font-size: 16px; color: var(--text-secondary); line-height: 96px; align-self: center; }
         .time-popup-footer {
             display: flex; justify-content: flex-end; gap: 8px;
             margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);

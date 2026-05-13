@@ -1,11 +1,27 @@
 <div class="search-bar">
     <form class="search-row" hx-post="/api/record" hx-target="#cdr" hx-swap="innerHTML">
+
+        <div class="field-group">
+            <span class="field-label">主叫：</span>
+            <input name="caller" type="text" placeholder="请输入主叫" class="field-input w-160">
+        </div>
+
+        <div class="field-group">
+            <span class="field-label">被叫：</span>
+            <input name="callee" type="text" placeholder="请输入被叫" class="field-input w-160">
+        </div>
+
+        <div class="field-group">
+            <span class="field-label">日期：</span>
+            <input name="day" type="date" value="<%= day %>" class="field-input w-160">
+        </div>
+
         <div class="field-group">
             <span class="field-label">时间：</span>
             <div class="time-picker-wrap">
                 <div class="time-display" tabindex="0" id="timeDisplay">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                    <span id="timeDisplayText"><%= start %> — <%= stop %></span>
+                    <span id="timeDisplayText"><%= start %> 至 <%= stop %></span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px;color:#bbbfc4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 </div>
                 <input type="hidden" name="start" id="inputStart" value="<%= start %>">
                 <input type="hidden" name="stop"  id="inputStop"  value="<%= stop %>">
@@ -35,25 +51,6 @@
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="field-group">
-            <span class="field-label">日期：</span>
-            <input name="day" type="date" value="<%= day %>" class="field-input w-160">
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="field-group">
-            <span class="field-label">主叫：</span>
-            <input name="caller" type="text" placeholder="请输入主叫" class="field-input w-160">
-        </div>
-
-        <div class="field-group">
-            <span class="field-label">被叫：</span>
-            <input name="callee" type="text" placeholder="请输入被叫" class="field-input w-160">
-        </div>
-
         <input type="hidden" name="msg_min" value="1">
 
         <button type="submit" class="btn btn-primary" style="margin-left:auto">
@@ -74,43 +71,25 @@
     let ev = parseTime('<%= stop %>');
     let tmp = { s: [...sv], e: [...ev] };
 
-    const ITEM_H = 32, OFFSET = 2;
-
     function buildCol(el, max, getVal, setVal) {
-        const inner = document.createElement('div');
-        inner.className = 'time-col-inner';
-        for (let i = 0; i < OFFSET; i++) inner.appendChild(Object.assign(document.createElement('span'), {textContent: ''}));
-        for (let v = 0; v < max; v++) {
-            const s = document.createElement('span');
-            s.textContent = pad(v); s.dataset.v = v;
-            inner.appendChild(s);
+        const prev = document.createElement('span');
+        const curr = document.createElement('span');
+        const next = document.createElement('span');
+        prev.className = 'adj'; next.className = 'adj';
+        el.append(prev, curr, next);
+
+        function render() {
+            const v = getVal();
+            prev.textContent = pad((v - 1 + max) % max);
+            curr.textContent = pad(v); curr.className = 'selected';
+            next.textContent = pad((v + 1) % max);
         }
-        for (let i = 0; i < OFFSET; i++) inner.appendChild(Object.assign(document.createElement('span'), {textContent: ''}));
-        el.appendChild(inner);
+        render();
 
-        function scrollTo(val, animate) {
-            inner.style.transition = animate ? 'transform 0.15s ease' : 'none';
-            inner.style.transform = `translateY(${-val * ITEM_H}px)`;
-            inner.querySelectorAll('span[data-v]').forEach(s => s.classList.toggle('selected', +s.dataset.v === val));
-        }
-        scrollTo(getVal(), false);
+        prev.addEventListener('click', () => { setVal((getVal() - 1 + max) % max); render(); });
+        next.addEventListener('click', () => { setVal((getVal() + 1) % max); render(); });
 
-        el.addEventListener('wheel', e => {
-            e.preventDefault();
-            const next = Math.max(0, Math.min(max-1, getVal() + (e.deltaY > 0 ? 1 : -1)));
-            setVal(next); scrollTo(next, true);
-        }, { passive: false });
-
-        let startY, startVal;
-        el.addEventListener('pointerdown', e => { startY = e.clientY; startVal = getVal(); el.setPointerCapture(e.pointerId); });
-        el.addEventListener('pointermove', e => {
-            if (startY == null) return;
-            const next = Math.max(0, Math.min(max-1, startVal + Math.round((startY - e.clientY) / ITEM_H)));
-            setVal(next); scrollTo(next, false);
-        });
-        el.addEventListener('pointerup', () => { startY = null; });
-
-        return () => scrollTo(getVal(), false);
+        return render;
     }
 
     const cols = [
@@ -127,7 +106,7 @@
     const displayText = document.getElementById('timeDisplayText');
 
     function updateDisplay() {
-        displayText.textContent = fmtTime(...sv) + ' — ' + fmtTime(...ev);
+        displayText.textContent = fmtTime(...sv) + ' 至 ' + fmtTime(...ev);
         document.getElementById('inputStart').value = fmtTime(...sv);
         document.getElementById('inputStop').value  = fmtTime(...ev);
     }

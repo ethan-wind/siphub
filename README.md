@@ -53,6 +53,11 @@ docker run -d --name=siphub \
     ghcr.io/wangduanduan/siphub:latest
 ```
 
+## 构建
+```shell
+docker build -t siphub:v1 . --push
+```
+
 **启动环境变量说明**
 
 - DBUser: 数据库用户名， 默认wangduanduan

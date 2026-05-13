@@ -1,93 +1,16 @@
-<style>
-.time-picker-wrap { position: relative; }
-.time-display {
-    display: flex; align-items: center; gap: 6px;
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 7px; padding: 0 10px; height: 34px;
-    font-size: 13px; color: var(--text); cursor: pointer;
-    white-space: nowrap; min-width: 200px;
-    transition: border-color 0.15s, box-shadow 0.15s;
-}
-.time-display:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-.time-display .sep { color: var(--text-muted); }
-.time-popup {
-    display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 999;
-    background: #fff; border: 1px solid var(--border); border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 12px 16px 10px;
-    min-width: 320px;
-}
-.time-popup.open { display: block; }
-.time-popup-header {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
-    text-align: center; font-size: 11px; font-weight: 600;
-    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-.time-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.time-col-group { display: flex; gap: 4px; justify-content: center; }
-.time-col {
-    width: 36px; height: 160px; overflow: hidden; position: relative;
-    cursor: ns-resize;
-}
-.time-col::before, .time-col::after {
-    content: ''; position: absolute; left: 0; right: 0; height: 52px; z-index: 1; pointer-events: none;
-}
-.time-col::before { top: 0; background: linear-gradient(to bottom, #fff 60%, transparent); }
-.time-col::after  { bottom: 0; background: linear-gradient(to top, #fff 60%, transparent); }
-.time-col-inner {
-    display: flex; flex-direction: column; align-items: center;
-    transition: transform 0.15s ease;
-}
-.time-col-inner span {
-    height: 32px; line-height: 32px; font-size: 14px; font-weight: 500;
-    color: var(--text-muted); width: 36px; text-align: center; border-radius: 6px;
-    flex-shrink: 0; transition: color 0.1s, font-weight 0.1s;
-}
-.time-col-inner span.selected { color: var(--accent); font-weight: 700; }
-.time-col-sep { line-height: 160px; font-size: 16px; color: var(--text-muted); align-self: center; }
-.time-popup-footer {
-    display: flex; justify-content: flex-end; gap: 8px;
-    margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);
-}
-.time-popup-footer button {
-    font-size: 12px; font-weight: 600; padding: 4px 14px;
-    border-radius: 6px; border: none; cursor: pointer;
-}
-.btn-cancel { background: transparent; color: var(--text-muted); }
-.btn-cancel:hover { color: var(--text); }
-.btn-confirm { background: var(--accent); color: #fff; }
-.btn-confirm:hover { opacity: 0.88; }
-</style>
-
-<div class="search-panel">
-    <form class="d-flex align-items-end gap-2 flex-wrap" hx-post="/api/record" hx-target="#cdr" hx-swap="innerHTML">
-        <div>
-            <label class="form-label">主叫</label>
-            <input name="caller" type="text" placeholder="任意" class="form-control">
-        </div>
-        <div>
-            <label class="form-label">被叫</label>
-            <input name="callee" type="text" placeholder="任意" class="form-control">
-        </div>
-        <div>
-            <label class="form-label">日期</label>
-            <input name="day" type="date" value="<%= day %>" class="form-control">
-        </div>
-
-        <!-- 时间选择器 -->
-        <div>
-            <label class="form-label">时间</label>
+<div class="search-bar">
+    <form class="search-row" hx-post="/api/record" hx-target="#cdr" hx-swap="innerHTML">
+        <div class="field-group">
+            <span class="field-label">时间：</span>
             <div class="time-picker-wrap">
                 <div class="time-display" tabindex="0" id="timeDisplay">
-                    <span id="timeDisplayText"><%= start %> 至 <%= stop %></span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span id="timeDisplayText"><%= start %> — <%= stop %></span>
                 </div>
                 <input type="hidden" name="start" id="inputStart" value="<%= start %>">
                 <input type="hidden" name="stop"  id="inputStop"  value="<%= stop %>">
-
                 <div class="time-popup" id="timePopup">
-                    <div class="time-popup-header">
-                        <div>开始时间</div><div>结束时间</div>
-                    </div>
+                    <div class="time-popup-header"><div>开始时间</div><div>结束时间</div></div>
                     <div class="time-cols">
                         <div class="time-col-group">
                             <div class="time-col" id="col-sh"></div>
@@ -105,20 +28,39 @@
                         </div>
                     </div>
                     <div class="time-popup-footer">
-                        <button type="button" class="btn-cancel" id="btnCancel">取消</button>
-                        <button type="button" class="btn-confirm" id="btnConfirm">确定</button>
+                        <button type="button" class="btn-tp-cancel" id="btnCancel">取消</button>
+                        <button type="button" class="btn-tp-confirm" id="btnConfirm">确定</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <input type="hidden" name="msg_min" value="1">
-        <div>
-            <button type="submit" class="btn-search">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                <img class="htmx-indicator" src="/img/oval.svg" width="14">
-            </button>
+        <div class="divider"></div>
+
+        <div class="field-group">
+            <span class="field-label">日期：</span>
+            <input name="day" type="date" value="<%= day %>" class="field-input w-160">
         </div>
+
+        <div class="divider"></div>
+
+        <div class="field-group">
+            <span class="field-label">主叫：</span>
+            <input name="caller" type="text" placeholder="请输入主叫" class="field-input w-160">
+        </div>
+
+        <div class="field-group">
+            <span class="field-label">被叫：</span>
+            <input name="callee" type="text" placeholder="请输入被叫" class="field-input w-160">
+        </div>
+
+        <input type="hidden" name="msg_min" value="1">
+
+        <button type="submit" class="btn btn-primary" style="margin-left:auto">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            搜索
+            <img class="htmx-indicator" src="/img/oval.svg" width="13">
+        </button>
     </form>
 </div>
 
@@ -128,25 +70,21 @@
     const parseTime = s => { const p = (s||'00:00:00').split(':'); return [+p[0]||0, +p[1]||0, +p[2]||0]; };
     const fmtTime = (h,m,s) => `${pad(h)}:${pad(m)}:${pad(s)}`;
 
-    // state
     let sv = parseTime('<%= start %>');
     let ev = parseTime('<%= stop %>');
     let tmp = { s: [...sv], e: [...ev] };
 
-    const ITEM_H = 32, VISIBLE = 5, OFFSET = Math.floor(VISIBLE/2);
+    const ITEM_H = 32, OFFSET = 2;
 
     function buildCol(el, max, getVal, setVal) {
-        const items = Array.from({length: max}, (_,i) => i);
         const inner = document.createElement('div');
         inner.className = 'time-col-inner';
-        // padding top/bottom
         for (let i = 0; i < OFFSET; i++) inner.appendChild(Object.assign(document.createElement('span'), {textContent: ''}));
-        items.forEach(v => {
+        for (let v = 0; v < max; v++) {
             const s = document.createElement('span');
-            s.textContent = pad(v);
-            s.dataset.v = v;
+            s.textContent = pad(v); s.dataset.v = v;
             inner.appendChild(s);
-        });
+        }
         for (let i = 0; i < OFFSET; i++) inner.appendChild(Object.assign(document.createElement('span'), {textContent: ''}));
         el.appendChild(inner);
 
@@ -155,27 +93,19 @@
             inner.style.transform = `translateY(${-val * ITEM_H}px)`;
             inner.querySelectorAll('span[data-v]').forEach(s => s.classList.toggle('selected', +s.dataset.v === val));
         }
-
         scrollTo(getVal(), false);
 
-        // wheel
         el.addEventListener('wheel', e => {
             e.preventDefault();
-            const dir = e.deltaY > 0 ? 1 : -1;
-            const next = Math.max(0, Math.min(max - 1, getVal() + dir));
+            const next = Math.max(0, Math.min(max-1, getVal() + (e.deltaY > 0 ? 1 : -1)));
             setVal(next); scrollTo(next, true);
         }, { passive: false });
 
-        // drag
         let startY, startVal;
-        el.addEventListener('pointerdown', e => {
-            startY = e.clientY; startVal = getVal();
-            el.setPointerCapture(e.pointerId);
-        });
+        el.addEventListener('pointerdown', e => { startY = e.clientY; startVal = getVal(); el.setPointerCapture(e.pointerId); });
         el.addEventListener('pointermove', e => {
             if (startY == null) return;
-            const delta = Math.round((startY - e.clientY) / ITEM_H);
-            const next = Math.max(0, Math.min(max - 1, startVal + delta));
+            const next = Math.max(0, Math.min(max-1, startVal + Math.round((startY - e.clientY) / ITEM_H)));
             setVal(next); scrollTo(next, false);
         });
         el.addEventListener('pointerup', () => { startY = null; });
@@ -197,7 +127,7 @@
     const displayText = document.getElementById('timeDisplayText');
 
     function updateDisplay() {
-        displayText.textContent = fmtTime(...sv) + ' 至 ' + fmtTime(...ev);
+        displayText.textContent = fmtTime(...sv) + ' — ' + fmtTime(...ev);
         document.getElementById('inputStart').value = fmtTime(...sv);
         document.getElementById('inputStop').value  = fmtTime(...ev);
     }
@@ -206,21 +136,12 @@
         tmp = { s: [...sv], e: [...ev] };
         cols.forEach(r => r());
         popup.classList.add('open');
-        display.focus();
     }
 
     display.addEventListener('click', () => popup.classList.contains('open') ? popup.classList.remove('open') : openPopup());
     display.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPopup(); } });
-
-    document.getElementById('btnConfirm').addEventListener('click', () => {
-        sv = [...tmp.s]; ev = [...tmp.e];
-        updateDisplay();
-        popup.classList.remove('open');
-    });
+    document.getElementById('btnConfirm').addEventListener('click', () => { sv = [...tmp.s]; ev = [...tmp.e]; updateDisplay(); popup.classList.remove('open'); });
     document.getElementById('btnCancel').addEventListener('click', () => popup.classList.remove('open'));
-
-    document.addEventListener('click', e => {
-        if (!display.closest('.time-picker-wrap').contains(e.target)) popup.classList.remove('open');
-    });
+    document.addEventListener('click', e => { if (!display.closest('.time-picker-wrap').contains(e.target)) popup.classList.remove('open'); });
 })();
 </script>

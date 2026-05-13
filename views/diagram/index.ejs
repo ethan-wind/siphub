@@ -67,28 +67,46 @@
             flex: 1;
             display: flex;
             overflow: hidden;
-            gap: 0;
         }
 
         /* ── Diagram pane ── */
         .pane-diagram {
-            flex: 0 0 55%;
+            flex: 1 1 auto;
             overflow: auto;
-            padding: 20px;
-            border-right: 1px solid #e2e6ed;
+            padding: 16px 20px;
             background: #fff;
         }
         #seq-a svg {
-            max-width: 100%;
+            display: block;
             height: auto;
         }
 
         /* ── Message list pane ── */
         .pane-list {
-            flex: 0 0 45%;
+            flex: 0 0 320px;
+            width: 320px;
             overflow-y: auto;
             background: #f5f7fa;
+            border-left: 1px solid #e2e6ed;
         }
+        .pane-list.collapsed { flex: 0 0 0; width: 0; overflow: hidden; }
+
+        /* toggle button */
+        .pane-toggle {
+            flex-shrink: 0;
+            width: 20px;
+            background: #f0f2f5;
+            border-left: 1px solid #e2e6ed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #8a94a6;
+            font-size: 11px;
+            user-select: none;
+            transition: background 0.1s;
+        }
+        .pane-toggle:hover { background: #e4e7ed; }
 
         .msg-item {
             border-bottom: 1px solid #e2e6ed;
@@ -168,7 +186,8 @@
         <div id="seq-a"></div>
     </div>
 
-    <div class="pane-list">
+    <div class="pane-toggle" id="paneToggle" title="折叠/展开">«</div>
+    <div class="pane-list" id="paneList">
         <% for (let i = 0; i < table.length; i++) { let v = table[i]; %>
         <div class="msg-item" id="msg-<%= i %>" data-id="<%= i %>">
             <div class="msg-item-header">
@@ -181,6 +200,14 @@
         <% } %>
     </div>
 </div>
+<script>
+    const toggle = document.getElementById('paneToggle');
+    const pane   = document.getElementById('paneList');
+    toggle.addEventListener('click', () => {
+        const collapsed = pane.classList.toggle('collapsed');
+        toggle.textContent = collapsed ? '»' : '«';
+    });
+</script>
 
 <script>
     const code = `<%- seq %>`

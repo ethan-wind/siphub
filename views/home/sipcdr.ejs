@@ -4,41 +4,32 @@
     <div>暂无数据，请调整筛选条件后重新搜索</div>
 </div>
 <% } else { %>
-<div class="table-wrap">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>时间</th>
-                <th>主叫号码</th>
-                <th>主叫域名</th>
-                <th>被叫号码</th>
-                <th>被叫域名</th>
-                <th>User Agent</th>
-                <th>消息数</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% for (let i = 0; i < table.length; i++) { let v = table[i];
-               const callerDomain = (v.srcHost || '').replace(/_/g, ':');
-               const calleeDomain = (v.dstHost || '').replace(/_/g, ':');
-            %>
-            <tr>
-                <td class="row-num"><%= i %></td>
-                <td class="mono"><%= v.startTime %></td>
-                <td>
-                    <a class="callid-link" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.caller %></a>
-                </td>
-                <td class="mono" style="color:var(--text-muted)"><%= callerDomain %></td>
-                <td>
-                    <a class="callid-link" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.callee %></a>
-                </td>
-                <td class="mono" style="color:var(--text-muted)"><%= calleeDomain %></td>
-                <td style="color:var(--text-muted);font-size:11px"><%= v.UA %></td>
-                <td class="mono"><%= v.msgTotal %></td>
-            </tr>
-            <% } %>
-        </tbody>
-    </table>
-</div>
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>时间</th>
+            <th>主叫号码</th>
+            <th>主叫域名</th>
+            <th>被叫号码</th>
+            <th>被叫域名</th>
+            <th>User Agent</th>
+            <th>消息数</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% for (let i = 0; i < table.length; i++) { const v = table[i]; %>
+        <tr>
+            <td class="td-index"><%= i %></td>
+            <td class="td-mono td-muted"><%= v.startTime %></td>
+            <td><a class="link-caller" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.caller %></a></td>
+            <td class="td-mono td-muted"><%= (v.srcHost||'').replace(/_/g,':') %></td>
+            <td><a class="link-caller" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.callee %></a></td>
+            <td class="td-mono td-muted"><%= (v.dstHost||'').replace(/_/g,':') %></td>
+            <td class="td-muted"><%= v.UA %></td>
+            <td class="td-mono"><%= v.msgTotal %></td>
+        </tr>
+        <% } %>
+    </tbody>
+</table>
 <% } %>

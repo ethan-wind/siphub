@@ -1,222 +1,295 @@
 <!doctype html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SIPHub</title>
-    <link href="/bootstrap-5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="/htmx-2.0.2/htmx.js"></script>
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         :root {
-            --bg: #f5f7fa;
+            --bg: #f0f2f5;
             --surface: #ffffff;
-            --surface2: #f0f2f5;
-            --border: #e2e6ed;
-            --accent: #3b6ef8;
-            --accent-glow: rgba(59,110,248,0.12);
-            --text: #1a202c;
-            --text-muted: #8a94a6;
-            --success: #059669;
-            --warning: #d97706;
-            --danger: #dc2626;
+            --border: #e4e7ed;
+            --border-light: #f0f2f5;
+            --accent: #4e6ef2;
+            --accent-hover: #3a5ce5;
+            --accent-light: #eef1fe;
+            --text: #1f2329;
+            --text-secondary: #646a73;
+            --text-placeholder: #bbbfc4;
+            --danger: #f54a45;
+            --success: #00b42a;
         }
 
-        * { box-sizing: border-box; }
-
         body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+            font-size: 14px;
             background: var(--bg);
             color: var(--text);
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            font-size: 13px;
             min-height: 100vh;
         }
 
-        /* ── Navbar ── */
-        .navbar {
-            background: var(--surface) !important;
-            border-bottom: 1px solid var(--border);
-            padding: 0 24px;
-            height: 52px;
-        }
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 16px;
-            color: var(--accent) !important;
-            letter-spacing: 0.5px;
-        }
-        .nav-link {
-            color: var(--text-muted) !important;
-            font-size: 13px;
-            padding: 6px 14px !important;
-            border-radius: 6px;
-            transition: all 0.15s;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: var(--text) !important;
-            background: var(--surface2);
-        }
-
-        /* ── Search Panel ── */
-        .search-panel {
+        /* ── Top bar ── */
+        .topbar {
+            height: 48px;
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px 24px;
-            margin: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 0;
         }
-        .search-panel .form-label {
-            color: var(--text-muted);
-            font-size: 11px;
+        .topbar-brand {
+            font-size: 15px;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            margin-bottom: 5px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 20px;
+            border-right: 1px solid var(--border);
+            margin-right: 0;
+            text-decoration: none;
         }
-        .form-control, .form-select {
-            background: var(--bg) !important;
-            border: 1px solid var(--border) !important;
-            color: var(--text) !important;
-            border-radius: 7px;
-            font-size: 13px;
-            height: 34px;
-            padding: 0 10px;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--accent) !important;
-            box-shadow: 0 0 0 3px var(--accent-glow) !important;
-            outline: none;
-        }
-        .form-control::placeholder { color: var(--text-muted); }
-        .form-select option { background: var(--surface2); }
-
-        .btn-search {
-            background: var(--accent);
-            border: none;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
-            padding: 7px 22px;
-            border-radius: 7px;
-            display: inline-flex;
+        .topbar-brand svg { color: var(--accent); }
+        .topbar-tab {
+            display: flex;
             align-items: center;
             gap: 6px;
-            transition: opacity 0.15s, transform 0.1s;
+            height: 48px;
+            padding: 0 16px;
+            font-size: 13px;
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            margin-left: 4px;
+            cursor: default;
+            background: var(--accent-light);
         }
-        .btn-search:hover { opacity: 0.88; transform: translateY(-1px); }
-        .btn-search:active { transform: translateY(0); }
+        .topbar-tab svg { width: 14px; height: 14px; }
 
-        /* ── Table ── */
-        .table-wrap {
-            margin: 0 24px 24px;
+        /* ── Search bar ── */
+        .search-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+        }
+        .search-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .field-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .field-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .field-input {
+            height: 32px;
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 4px;
+            padding: 0 10px;
+            font-size: 13px;
+            color: var(--text);
+            background: var(--surface);
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .field-input:focus { border-color: var(--accent); }
+        .field-input::placeholder { color: var(--text-placeholder); }
+        .field-input.w-120 { width: 120px; }
+        .field-input.w-160 { width: 160px; }
+        .field-input.w-200 { width: 200px; }
+
+        .divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+        .btn {
+            height: 32px;
+            padding: 0 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.15s, opacity 0.15s;
+        }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-default { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-default:hover { background: var(--bg); }
+
+        /* htmx */
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: inline-block; }
+
+        /* ── Table area ── */
+        .table-area {
+            margin: 16px 20px;
+            background: var(--surface);
+            border-radius: 6px;
+            border: 1px solid var(--border);
             overflow: hidden;
         }
-        .table {
-            margin: 0;
-            border-collapse: collapse;
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-light);
+            gap: 8px;
         }
-        .table thead tr {
-            background: var(--surface2);
+        .result-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-right: auto;
         }
-        .table thead th {
-            color: var(--text-muted);
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 10px 12px;
-            border: none;
+
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: var(--bg); }
+        thead th {
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: left;
+            border-bottom: 1px solid var(--border);
             white-space: nowrap;
         }
-        .table tbody tr {
-            border-top: 1px solid var(--border);
-            transition: background 0.1s;
-        }
-        .table tbody tr:hover { background: var(--surface2); }
-        .table tbody td {
-            padding: 9px 12px;
-            border: none;
+        tbody tr { border-bottom: 1px solid var(--border-light); transition: background 0.1s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #f7f8fc; }
+        tbody td {
+            padding: 11px 16px;
+            font-size: 13px;
             color: var(--text);
             white-space: nowrap;
             vertical-align: middle;
         }
-        .table tbody td.mono {
-            font-family: 'SF Mono', 'Fira Code', monospace;
+        .td-muted { color: var(--text-secondary); font-size: 12px; }
+        .td-mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+        .td-index {
+            color: var(--text-secondary);
             font-size: 12px;
+            font-family: monospace;
+            width: 40px;
         }
-
-        /* badges */
-        .badge-method {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
-        .badge-INVITE  { background: rgba(59,110,248,0.10); color: #2d5be3; }
-        .badge-REGISTER{ background: rgba(5,150,105,0.10);  color: #047857; }
-        .badge-BYE     { background: rgba(220,38,38,0.10);  color: #b91c1c; }
-        .badge-OTHER   { background: rgba(138,148,166,0.15);color: #5a6478; }
-
-        .code-final {
-            font-family: 'SF Mono', monospace;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .code-2xx { color: var(--success); }
-        .code-1xx { color: var(--warning); }
-        .code-4xx, .code-5xx { color: var(--danger); }
-
-        .callid-link {
+        .link-caller {
             color: var(--accent);
             text-decoration: none;
-            font-family: 'SF Mono', monospace;
-            font-size: 11px;
-            max-width: 220px;
-            display: inline-block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            vertical-align: middle;
+            font-weight: 500;
         }
-        .callid-link:hover { text-decoration: underline; color: #7b9fff; }
+        .link-caller:hover { text-decoration: underline; }
 
-        .row-num {
-            color: var(--text-muted);
-            font-size: 11px;
-            font-family: 'SF Mono', monospace;
-            min-width: 28px;
-        }
-
-        /* htmx loading */
-        .htmx-indicator { display: none; }
-        .htmx-request .htmx-indicator { display: inline-block; }
-        .htmx-request.btn-search { opacity: 0.7; pointer-events: none; }
-
-        /* empty state */
+        /* empty */
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
+            padding: 64px 20px;
+            color: var(--text-secondary);
         }
-        .empty-state svg { opacity: 0.3; margin-bottom: 12px; }
+        .empty-state svg { opacity: 0.25; display: block; margin: 0 auto 12px; }
 
         /* scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* time picker */
+        .time-picker-wrap { position: relative; }
+        .time-display {
+            height: 32px; padding: 0 10px;
+            border: 1px solid var(--border); border-radius: 4px;
+            display: flex; align-items: center; gap: 6px;
+            font-size: 13px; color: var(--text);
+            background: var(--surface); cursor: pointer;
+            white-space: nowrap; min-width: 210px;
+            transition: border-color 0.15s;
+        }
+        .time-display:focus { outline: none; border-color: var(--accent); }
+        .time-display svg { color: var(--text-placeholder); flex-shrink: 0; }
+        .time-popup {
+            display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 999;
+            background: #fff; border: 1px solid var(--border); border-radius: 6px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1); padding: 12px 16px 10px;
+            min-width: 320px;
+        }
+        .time-popup.open { display: block; }
+        .time-popup-header {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+            text-align: center; font-size: 11px; font-weight: 600;
+            color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .time-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .time-col-group { display: flex; gap: 4px; justify-content: center; }
+        .time-col { width: 36px; height: 160px; overflow: hidden; position: relative; cursor: ns-resize; }
+        .time-col::before, .time-col::after {
+            content: ''; position: absolute; left: 0; right: 0; height: 52px; z-index: 1; pointer-events: none;
+        }
+        .time-col::before { top: 0; background: linear-gradient(to bottom, #fff 60%, transparent); }
+        .time-col::after  { bottom: 0; background: linear-gradient(to top, #fff 60%, transparent); }
+        .time-col-inner { display: flex; flex-direction: column; align-items: center; transition: transform 0.15s ease; }
+        .time-col-inner span {
+            height: 32px; line-height: 32px; font-size: 14px; font-weight: 500;
+            color: var(--text-secondary); width: 36px; text-align: center; border-radius: 4px;
+            flex-shrink: 0; transition: color 0.1s;
+        }
+        .time-col-inner span.selected { color: var(--accent); font-weight: 700; }
+        .time-col-sep { line-height: 160px; font-size: 16px; color: var(--text-secondary); align-self: center; }
+        .time-popup-footer {
+            display: flex; justify-content: flex-end; gap: 8px;
+            margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);
+        }
+        .time-popup-footer button {
+            font-size: 12px; font-weight: 500; padding: 4px 14px;
+            border-radius: 4px; border: none; cursor: pointer;
+        }
+        .btn-tp-cancel { background: transparent; color: var(--text-secondary); }
+        .btn-tp-cancel:hover { color: var(--text); }
+        .btn-tp-confirm { background: var(--accent); color: #fff; }
     </style>
 </head>
-
 <body>
-    <%- include('navbar') %>
-    <%- include('search', {'day':day, 'start': start, 'stop': stop}) %>
-    <div id="cdr">
-        <%- include('sipcdr', {'table': table}) %>
-    </div>
-</body>
 
+<%- include('navbar') %>
+<%- include('search', {day, start, stop}) %>
+
+<div class="table-area">
+    <div class="table-toolbar">
+        <span class="result-count" id="result-count"></span>
+        <button class="btn btn-default" onclick="document.querySelector('form').reset()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            重置
+        </button>
+    </div>
+    <div id="cdr">
+        <%- include('sipcdr', {table}) %>
+    </div>
+</div>
+
+<script>
+    // update result count after htmx swap
+    document.body.addEventListener('htmx:afterSwap', () => {
+        const rows = document.querySelectorAll('#cdr tbody tr').length;
+        const el = document.getElementById('result-count');
+        if (el) el.textContent = rows ? `共 ${rows} 条记录` : '';
+    });
+    // init count
+    (function(){
+        const rows = document.querySelectorAll('#cdr tbody tr').length;
+        const el = document.getElementById('result-count');
+        if (el && rows) el.textContent = `共 ${rows} 条记录`;
+    })();
+</script>
+</body>
 </html>

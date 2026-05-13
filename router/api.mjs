@@ -6,13 +6,17 @@ import { createSeqHtml } from "../util.mjs"
 
 export const route = Router()
 
-route.post('/record', async (req, res) => {
+function asyncHandler(fn) {
+    return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
+}
+
+route.post('/record', asyncHandler(async (req, res) => {
     let re = await queryRecord(req.body)
     logger.info(`row length ${re.rows.length}`)
     res.render('home/sipcdr', { table: re.rows })
-})
+}))
 
-route.get('/call', async (req, res) => {
+route.get('/call', asyncHandler(async (req, res) => {
     let re = await queryById(req.query.id, req.query.day)
     let rows = re.rows
     let seq = createSeqHtml(rows)
@@ -21,5 +25,4 @@ route.get('/call', async (req, res) => {
     res.render('diagram/index', {
         seq: seq.html, table: rows
     })
-})
-
+}))

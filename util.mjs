@@ -96,8 +96,8 @@ export function createSeqHtml(seq) {
         let dis = 0
 
         if (index !== 0) {
-            const a = dayjs(seq[index].CreateTime).unix() + '.' + seq[index].TimestampMicro
-            const b = dayjs(seq[index - 1].CreateTime).unix() + '.' + seq[index - 1].TimestampMicro
+            const a = dayjs(seq[index].create_time).unix() + '.' + seq[index].timestamp_micro
+            const b = dayjs(seq[index - 1].create_time).unix() + '.' + seq[index - 1].timestamp_micro
             dis = parseFloat(a) - parseFloat(b)
         }
 

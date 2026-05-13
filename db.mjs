@@ -104,8 +104,7 @@ export async function queryById(id, day) {
     select
     sip_call_id,
 	sip_method,
-	to_char(create_time,
-	'YYYY-MM-DD HH24:MI:SS') as create_time,
+	date_format(create_time, '%Y-%m-%d %H:%i:%s') as create_time,
 	timestamp_micro,
 	raw_msg,
     cseq_number,
@@ -123,7 +122,7 @@ export async function queryById(id, day) {
     from
         ${mysql.escapeId(getTableNameByDay(day))}
     where
-        sip_call_id = '${id}'
+        sip_call_id = ${mysql.escape(id)}
     order by create_time , timestamp_micro 
     `
 

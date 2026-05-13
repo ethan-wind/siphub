@@ -21,7 +21,11 @@ if (AppEnv.enableCron === 'yes') {
   logger.info('disable crontab')
 }
 
-app.get('/', async function (req, res) {
+function asyncHandler(fn) {
+  return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
+}
+
+app.get('/', asyncHandler(async function (req, res) {
   let n = dayjs()
   let day = n.format('YYYY-MM-DD')
   let start = n.subtract(10, 'm').format('HH:mm:ss')
@@ -44,8 +48,13 @@ app.get('/', async function (req, res) {
     stop,
     table: result.rows
   })
-})
+}))
 
 app.use('/api', route)
+
+app.use((err, req, res, next) => {
+  logger.error(err)
+  res.status(500).send('Internal Server Error')
+})
 
 app.listen(3000)

@@ -56,16 +56,12 @@
             gap: 12px;
             padding: 12px 16px;
             min-height: 0;
-            overflow: hidden;
+            overflow: auto;
         }
 
-        /* ── Diagram area ── */
+        /* ── Diagram area (fixed 1100px) ── */
         .diagram-wrap {
-            flex: 1 1 auto;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            min-width: 0;
+            flex: 0 0 1100px;
             height: 100%;
             background: #fff;
             border: 1px solid #e4e7ed;
@@ -76,93 +72,88 @@
         #seq-a { display: block; }
         #seq-a svg { display: block; margin: 0 auto; }
 
-        /* ── Toggle button (in topbar) ── */
-        .detail-toggle {
-            margin-left: auto;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 12px;
-            font-size: 12px;
-            color: #646a73;
+        /* ── Detail panel (fixed 480px, collapsible) ── */
+        .detail-panel {
+            flex: 0 0 480px;
+            height: 100%;
             background: #fff;
             border: 1px solid #e4e7ed;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.1s, color 0.1s, border-color 0.1s;
+            border-radius: 6px;
+            display: flex;
+            overflow: hidden;
+            transition: flex-basis 0.2s ease;
         }
-        .detail-toggle:hover { background: #f0f2f5; }
-        .detail-toggle.active { color: #4e6ef2; border-color: #4e6ef2; background: #eef1fe; }
+        .detail-panel.collapsed { flex-basis: 36px; }
 
-        /* ── Detail sidebar ── */
-        .msg-list {
-            flex: 0 0 440px;
+        .panel-collapse {
+            flex-shrink: 0;
+            width: 36px;
             height: 100%;
-            overflow-y: auto;
+            background: transparent;
+            border: 0;
+            border-right: 1px solid #e4e7ed;
+            cursor: pointer;
+            color: #8a94a6;
+            display: grid;
+            place-items: center;
+            transition: background 0.1s, color 0.1s;
+        }
+        .panel-collapse:hover { background: #f7f8fc; color: #4e6ef2; }
+        .panel-collapse svg { transition: transform 0.2s; }
+        .detail-panel.collapsed .panel-collapse { border-right: 0; }
+        .detail-panel.collapsed .panel-collapse svg { transform: rotate(180deg); }
+
+        .detail-panel-body {
+            flex: 1 1 auto;
+            min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 0;
+            overflow: hidden;
         }
-        .msg-list.hidden { display: none; }
+        .detail-panel.collapsed .detail-panel-body { display: none; }
 
-        .msg-item {
-            background: #fff;
-            border: 1px solid #e4e7ed;
-            border-top: none;
-            cursor: pointer;
-            transition: background 0.1s;
-        }
-        .msg-item:first-child { border-top: 1px solid #e4e7ed; border-radius: 6px 6px 0 0; }
-        .msg-item:last-child  { border-radius: 0 0 6px 6px; }
-        .msg-item:only-child  { border-radius: 6px; }
-        .msg-item:hover { background: #f7f8fc; }
-        .msg-item.active { background: #eef1fe; }
-
-        .msg-item-header {
+        .detail-panel-header {
+            flex: 0 0 auto;
+            padding: 10px 14px;
+            border-bottom: 1px solid #e4e7ed;
             display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 7px 12px;
+            flex-direction: column;
+            gap: 3px;
         }
-        .msg-index {
-            font-size: 10px;
+        .detail-panel-title {
+            font-size: 13px;
             font-weight: 700;
-            color: #fff;
-            background: #8a94a6;
-            border-radius: 3px;
-            padding: 1px 5px;
-            flex-shrink: 0;
-            font-family: monospace;
+            color: #1f2329;
         }
-        .msg-method {
-            font-size: 12px;
-            font-weight: 700;
-            color: #4e6ef2;
-        }
-        .msg-meta {
-            margin-left: auto;
+        .detail-panel-meta {
             font-size: 11px;
             color: #8a94a6;
             font-family: 'SF Mono', monospace;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .msg-raw {
-            display: none;
-            margin: 0 12px 8px;
-            padding: 8px 10px;
-            background: #f5f7fa;
-            border: 1px solid #e4e7ed;
-            border-radius: 4px;
+        .detail-raw {
+            flex: 1 1 auto;
+            margin: 0;
+            padding: 12px 14px;
+            background: #f7f8fc;
             font-family: 'SF Mono', 'Fira Code', monospace;
             font-size: 11px;
-            line-height: 1.6;
+            line-height: 1.7;
             color: #334155;
             white-space: pre-wrap;
             word-break: break-all;
-            max-height: 280px;
             overflow-y: auto;
         }
-        .msg-item.active .msg-raw { display: block; }
+        .detail-raw.empty {
+            display: grid;
+            place-items: center;
+            color: #8a94a6;
+            background: #fff;
+            font-family: inherit;
+            font-size: 12px;
+        }
 
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
@@ -178,10 +169,6 @@
     </a>
     <span class="topbar-sep">/</span>
     <span class="topbar-title"><%= table[0] ? table[0].sip_call_id : '' %></span>
-    <button class="detail-toggle" id="detailToggle">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h6M3 15h6"/></svg>
-        <span id="detailToggleLabel">显示信令详情</span>
-    </button>
 </div>
 
 <div class="page-body">
@@ -189,18 +176,18 @@
         <div id="seq-a"></div>
     </div>
 
-    <div class="msg-list hidden" id="msgList">
-        <% for (let i = 0; i < table.length; i++) { let v = table[i]; %>
-        <div class="msg-item" id="msg-<%= i %>" data-id="<%= i %>">
-            <div class="msg-item-header">
-                <span class="msg-index">F<%= i %></span>
-                <span class="msg-method"><%= v.sip_method %></span>
-                <span class="msg-meta"><%= v.create_time %> &nbsp;<%= v.sip_protocl %>/<%= v.msg_len %>B</span>
+    <aside class="detail-panel" id="detailPanel">
+        <button class="panel-collapse" id="panelCollapse" type="button" aria-label="切换信令详情">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <div class="detail-panel-body">
+            <div class="detail-panel-header">
+                <span class="detail-panel-title">信令详情</span>
+                <span class="detail-panel-meta" id="detailMeta">点击图中任意消息查看</span>
             </div>
-            <pre class="msg-raw"><%= v.raw_msg %></pre>
+            <pre class="detail-raw empty" id="detailRaw">点击序列图中的箭头查看报文详情</pre>
         </div>
-        <% } %>
-    </div>
+    </aside>
 </div>
 
 <script>
@@ -209,35 +196,40 @@
     const code = `<%- seq %>`
     const lineColors = ['#8A2BE2','#D2691E','#5F9EA0','#CD5C5C','#FF69B4','#90EE90','#FFA07A','#20B2AA','#87CEFA','#32CD32','#7B68EE','#C71585','#808000','#FF4500','#DA70D6','#00FF7F','#EE82EE','#9ACD32']
     const flow = [<%- table.map(it => it.cseq_number) %>]
+    const MSG_DATA = <%- JSON.stringify(table.map((v, i) => ({
+        index: i,
+        method: v.sip_method,
+        time: v.create_time,
+        protocol: v.sip_protocl,
+        size: v.msg_len,
+        raw: v.raw_msg,
+    }))).replace(/</g, '\\u003c') %>
     let gram
 
-    // toggle detail panel
-    const msgList = document.getElementById('msgList')
-    const detailToggle = document.getElementById('detailToggle')
-    const detailToggleLabel = document.getElementById('detailToggleLabel')
-    detailToggle.addEventListener('click', function () {
-        const hidden = msgList.classList.toggle('hidden')
-        detailToggleLabel.textContent = hidden ? '显示信令详情' : '隐藏信令详情'
-        detailToggle.classList.toggle('active', !hidden)
-    })
+    const detailPanel = document.getElementById('detailPanel')
+    const detailMeta  = document.getElementById('detailMeta')
+    const detailRaw   = document.getElementById('detailRaw')
 
-    function setActive(id) {
-        jq('.msg-item').removeClass('active')
-        const el = document.getElementById(`msg-${id}`)
-        if (el) { el.classList.add('active'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }
+    function showMsg(id) {
+        const m = MSG_DATA[id]
+        if (!m) return
+        detailMeta.textContent = `F${id} · ${m.method} · ${m.time} · ${m.protocol}/${m.size}B`
+        detailRaw.textContent = m.raw
+        detailRaw.classList.remove('empty')
+        if (detailPanel.classList.contains('collapsed')) {
+            detailPanel.classList.remove('collapsed')
+        }
     }
+
+    document.getElementById('panelCollapse').addEventListener('click', () => {
+        detailPanel.classList.toggle('collapsed')
+    })
 
     function init_diagram() {
         gram = new sd(code, { container: document.getElementById('seq-a') })
 
         gram.addEventListener('click', e => {
-            if (e.type === 'connect') { gram.setHighlight(e.ln); setActive(e.ln) }
-        })
-
-        jq('.msg-item').on('click', function () {
-            const id = parseInt(this.dataset.id)
-            gram.setHighlight(id); setActive(id)
-            jq('g.region.focus')[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+            if (e.type === 'connect') { gram.setHighlight(e.ln); showMsg(e.ln) }
         })
 
         jq('g.region:has(polygon)').each(function (index) {

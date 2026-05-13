@@ -221,10 +221,10 @@
         .time-display {
             height: 32px; padding: 0 10px;
             border: 1px solid var(--border); border-radius: 4px;
-            display: flex; align-items: center; gap: 6px;
+            display: inline-flex; align-items: center; gap: 6px;
             font-size: 13px; color: var(--text);
             background: var(--surface); cursor: pointer;
-            white-space: nowrap; min-width: 240px;
+            white-space: nowrap; width: fit-content;
             transition: border-color 0.15s;
         }
         .time-display:focus { outline: none; border-color: var(--accent); }

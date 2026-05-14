@@ -1,5 +1,6 @@
 import validator from 'validator'
 import dayjs from 'dayjs'
+import mysql from 'mysql2/promise'
 
 const regEx = /\d+/
 export function isRequest(method) {
@@ -15,35 +16,37 @@ export function whereBuilder(cond) {
     ]
 
     if (cond.caller.trim().length > 0) {
+        const caller = cond.caller.trim()
         if (cond.caller.indexOf('*') >= 0) {
-            re.push(`from_user like '${cond.caller.trim().replaceAll('*', '%')}'`)
+            re.push(`from_user like ${mysql.escape(caller.replaceAll('*', '%'))}`)
         } else {
-            re.push(`from_user = '${cond.caller.trim()}'`)
+            re.push(`from_user = ${mysql.escape(caller)}`)
         }
     }
 
     if (cond.callee.trim().length > 0) {
+        const callee = cond.callee.trim()
         if (cond.callee.indexOf('*') >= 0) {
-            re.push(`to_user like '${cond.callee.trim().replaceAll('*', '%')}'`)
+            re.push(`to_user like ${mysql.escape(callee.replaceAll('*', '%'))}`)
         } else {
-            re.push(`to_user = '${cond.callee.trim()}'`)
+            re.push(`to_user = ${mysql.escape(callee)}`)
         }
     }
 
     if (cond.callid?.trim() && cond.callid.trim().length > 0) {
-        re.push(`sip_call_id = '${cond.callid.trim()}'`)
+        re.push(`sip_call_id = ${mysql.escape(cond.callid.trim())}`)
     }
 
     if (cond.cseq_method?.trim() && cond.cseq_method.trim().length > 0) {
-        re.push(`cseq_method = '${cond.cseq_method.trim()}'`)
+        re.push(`cseq_method = ${mysql.escape(cond.cseq_method.trim())}`)
     }
 
     if (cond.src_host?.trim() && cond.src_host.trim().length > 0) {
-        re.push(`src_host like '${cond.src_host.trim()}%'`)
+        re.push(`src_host like ${mysql.escape(`${cond.src_host.trim()}%`)}`)
     }
 
     if (cond.dst_host?.trim() && cond.dst_host.trim().length > 0) {
-        re.push(`dst_host like '${cond.dst_host.trim()}%'`)
+        re.push(`dst_host like ${mysql.escape(`${cond.dst_host.trim()}%`)}`)
     }
 
     return re

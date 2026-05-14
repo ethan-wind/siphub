@@ -9,24 +9,34 @@
         <tr>
             <th>序号</th>
             <th>时间</th>
+            <th>时长</th>
             <th>主叫号码</th>
             <th>主叫域名</th>
             <th>被叫号码</th>
             <th>被叫域名</th>
+            <th>方法</th>
+            <th>状态</th>
             <th>User Agent</th>
             <th>消息数</th>
         </tr>
     </thead>
     <tbody>
         <% for (let i = 0; i < table.length; i++) { const v = table[i]; %>
+        <%
+            const finalCode = Number(v.finalCode || 0);
+            const statusClass = !finalCode ? 'status-empty' : (finalCode >= 400 ? 'status-error' : (finalCode >= 300 ? 'status-warn' : ''));
+        %>
         <tr>
-            <td class="td-index"><%= i %></td>
+            <td class="td-index"><%= i + 1 %></td>
             <td class="td-mono td-muted"><%= v.day %> <%= v.startTime %></td>
+            <td class="td-mono td-muted"><%= v.duration || '-' %></td>
             <td><a class="link-caller" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.caller %></a></td>
-            <td class="td-mono td-muted"><%= (v.srcHost||'').replace(/_/g,':') %></td>
+            <td class="td-mono td-muted td-host" title="<%= (v.srcHost||'').replace(/_/g,':') %>"><%= (v.srcHost||'').replace(/_/g,':') %></td>
             <td><a class="link-caller" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.callee %></a></td>
-            <td class="td-mono td-muted"><%= (v.dstHost||'').replace(/_/g,':') %></td>
-            <td class="td-muted"><%= v.UA %></td>
+            <td class="td-mono td-muted td-host" title="<%= (v.dstHost||'').replace(/_/g,':') %>"><%= (v.dstHost||'').replace(/_/g,':') %></td>
+            <td><span class="method-pill"><%= v.cseq_method || '-' %></span></td>
+            <td><span class="status-pill <%= statusClass %>"><%= v.finalCode || '-' %></span></td>
+            <td class="td-muted td-ua" title="<%= v.UA || '' %>"><%= v.UA %></td>
             <td class="td-mono"><%= v.msgTotal %></td>
         </tr>
         <% } %>

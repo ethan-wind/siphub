@@ -65,6 +65,7 @@ export async function deleteTable() {
 export async function queryRecord(c) {
     logger.info(c)
     let wh = whereBuilder(c)
+    const msgMin = Math.max(1, Number.parseInt(c.msg_min, 10) || 1)
     const sql = `
       select
         sip_call_id as "CallID",
@@ -87,7 +88,7 @@ export async function queryRecord(c) {
     where
         ${wh.join(' and ')}
     group by sip_call_id 
-    having count(*) >= ${c.msg_min}
+    having count(*) >= ${msgMin}
     order by "startTime" desc
     limit ${AppEnv.QueryLimit}
     `

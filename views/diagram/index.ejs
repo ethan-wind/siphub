@@ -227,11 +227,11 @@
     const code = `<%- seq %>`
     const msgLineOffset = <%= msgLineOffset || 0 %>
     const diagramSize = {
-        minWidth: 900,
+        minWidth: 1150,
         maxWidth: 1240,
         maxHeight: 780,
         minScale: 0.7,
-        maxScale: 1.8,
+        maxScale: 2.2,
     }
     const lineColors = ['#8A2BE2','#D2691E','#5F9EA0','#CD5C5C','#FF69B4','#90EE90','#FFA07A','#20B2AA','#87CEFA','#32CD32','#7B68EE','#C71585','#808000','#FF4500','#DA70D6','#00FF7F','#EE82EE','#9ACD32']
     const flow = [<%- table.map(it => it.cseq_number) %>]
@@ -258,6 +258,12 @@
         if (detailPanel.classList.contains('collapsed')) {
             detailPanel.classList.remove('collapsed')
         }
+    }
+
+    function selectDefaultMsg() {
+        if (MSG_DATA.length === 0) return
+        gram.setHighlight(msgLineOffset)
+        showMsg(0)
     }
 
     document.getElementById('panelCollapse').addEventListener('click', () => {
@@ -302,6 +308,8 @@
             jq(this).find('polygon').css('fill', color)
             jq(this).find('text').css('fill', color)
         })
+
+        selectDefaultMsg()
     }
 
     jq(document).ready(init_diagram)

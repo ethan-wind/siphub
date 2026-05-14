@@ -233,6 +233,11 @@
         minScale: 0.7,
         maxScale: 2.2,
     }
+    const endpointLabel = {
+        fontSize: 10,
+        paddingX: 9,
+        paddingY: 5,
+    }
     const lineColors = ['#0F766E','#2563EB','#B45309','#7C3AED','#BE123C','#047857','#C2410C','#4338CA','#0E7490','#A21CAF','#15803D','#B91C1C','#0369A1','#854D0E','#6D28D9','#0F766E','#1D4ED8','#9F1239']
     const flow = [<%- table.map(it => it.cseq_number) %>]
     const MSG_DATA = <%- JSON.stringify(table.map((v, i) => ({
@@ -294,9 +299,64 @@
         svg.setAttribute('height', Math.round(rawHeight * scale))
     }
 
+    function isEndpointLabel(text) {
+        return /^\d{1,3}(?:\.\d{1,3}){3}_\d+$/.test(text.trim())
+    }
+
+    function findLabelBox(text) {
+        const textBox = text.getBBox()
+        const textCenter = {
+            x: textBox.x + textBox.width / 2,
+            y: textBox.y + textBox.height / 2,
+        }
+        let node = text.parentElement
+
+        for (let i = 0; node && i < 4; i += 1, node = node.parentElement) {
+            const rect = Array.from(node.querySelectorAll('rect')).find(item => {
+                const x = parseFloat(item.getAttribute('x'))
+                const y = parseFloat(item.getAttribute('y'))
+                const width = parseFloat(item.getAttribute('width'))
+                const height = parseFloat(item.getAttribute('height'))
+                if ([x, y, width, height].some(Number.isNaN)) return false
+                return textCenter.x >= x && textCenter.x <= x + width &&
+                    textCenter.y >= y && textCenter.y <= y + height
+            })
+
+            if (rect) return rect
+        }
+
+        return null
+    }
+
+    function compactEndpointLabels() {
+        const svg = document.querySelector('#seq-a svg')
+        if (!svg) return
+
+        Array.from(svg.querySelectorAll('text')).filter(text => isEndpointLabel(text.textContent)).forEach(text => {
+            text.setAttribute('font-size', endpointLabel.fontSize)
+            text.style.fontSize = `${endpointLabel.fontSize}px`
+
+            const rect = findLabelBox(text)
+            if (!rect) return
+
+            const textBox = text.getBBox()
+            const rectBox = rect.getBBox()
+            const centerX = rectBox.x + rectBox.width / 2
+            const centerY = rectBox.y + rectBox.height / 2
+            const width = Math.ceil(textBox.width + endpointLabel.paddingX * 2)
+            const height = Math.ceil(textBox.height + endpointLabel.paddingY * 2)
+
+            rect.setAttribute('x', centerX - width / 2)
+            rect.setAttribute('y', centerY - height / 2)
+            rect.setAttribute('width', width)
+            rect.setAttribute('height', height)
+        })
+    }
+
     function init_diagram() {
         gram = new sd(code, { container: document.getElementById('seq-a') })
         fixDiagramSize()
+        compactEndpointLabels()
 
         gram.addEventListener('click', e => {
             if (e.type === 'connect') { gram.setHighlight(e.ln); showMsg(e.ln - msgLineOffset) }

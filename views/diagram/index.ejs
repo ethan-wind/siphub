@@ -226,13 +226,6 @@
     const sd = SequenceDiagram
     const code = `<%- seq %>`
     const msgLineOffset = <%= msgLineOffset || 0 %>
-    const diagramSize = {
-        minWidth: 1150,
-        maxWidth: 1240,
-        maxHeight: 780,
-        minScale: 0.7,
-        maxScale: 2.2,
-    }
     const endpointLabel = {
         fontSize: 10,
         paddingX: 9,
@@ -274,30 +267,6 @@
     document.getElementById('panelCollapse').addEventListener('click', () => {
         detailPanel.classList.toggle('collapsed')
     })
-
-    function fixDiagramSize() {
-        const svg = document.querySelector('#seq-a svg')
-        if (!svg) return
-
-        const rawWidth = parseFloat(svg.getAttribute('width')) || svg.viewBox.baseVal.width
-        const rawHeight = parseFloat(svg.getAttribute('height')) || svg.viewBox.baseVal.height
-        if (!rawWidth || !rawHeight) return
-
-        let scale = 1
-        if (rawWidth < diagramSize.minWidth) {
-            scale = diagramSize.minWidth / rawWidth
-        } else if (rawWidth > diagramSize.maxWidth) {
-            scale = diagramSize.maxWidth / rawWidth
-        }
-
-        if (rawHeight * scale > diagramSize.maxHeight) {
-            scale = diagramSize.maxHeight / rawHeight
-        }
-
-        scale = Math.min(diagramSize.maxScale, Math.max(diagramSize.minScale, scale))
-        svg.setAttribute('width', Math.round(rawWidth * scale))
-        svg.setAttribute('height', Math.round(rawHeight * scale))
-    }
 
     function isEndpointLabel(text) {
         return /^\d{1,3}(?:\.\d{1,3}){3}_\d+$/.test(text.trim())
@@ -357,7 +326,6 @@
 
     function init_diagram() {
         gram = new sd(code, { container: document.getElementById('seq-a') })
-        fixDiagramSize()
         compactEndpointLabels()
 
         gram.addEventListener('click', e => {

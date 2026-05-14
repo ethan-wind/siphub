@@ -17,21 +17,6 @@
 - 相同的SIP事务的线条颜色相同
 - 时序图显示的内容为：`F序号 SIP请求/状态码 [原因] 信令时间差`
 
-![](docs/img/flow.jpg)
-![](docs/img/flow2.jpg)
-
-
-# Roadmap
-
-- [x] 时序图搜索
-- [x] 时序图展示
-- [x] 分表
-- [x] 数据保留天数设置
-- [ ] 收藏
-- [ ] 导入pcap
-- [ ] 导入json
-- [ ] 导出json
-- [ ] AB Call-leg关联
 
 ## 依赖
 
@@ -48,12 +33,10 @@ docker run -d --name=siphub \
     -e DBAddr=1.2.3.4 \
     -e DBPort=3306 \
     -e DBName=siphub \
-    -e LoginUser=siphub \
-    -e LoginPasswd=123456@Aa \
     -e AuthSecret=please-change-me \
     -e dataKeepDays=10 \
     -p 3000:3000 \
-    ghcr.io/wangduanduan/siphub:latest
+    siphub:latest
 ```
 
 ## 构建

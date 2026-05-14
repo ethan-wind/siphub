@@ -136,13 +136,13 @@
             min-width: 0;
         }
         .field-group-time {
-            flex-direction: row;
-            align-items: flex-end;
+            display: grid;
+            grid-template-columns: max-content max-content;
+            align-items: start;
             gap: 8px;
-            flex-wrap: wrap;
         }
         .field-group-time .field-label {
-            width: 100%;
+            grid-column: 1 / -1;
         }
         .field-label {
             font-size: 12px;
@@ -246,7 +246,15 @@
             margin-right: auto;
         }
 
-        table { width: 100%; min-width: 1180px; border-collapse: collapse; }
+        table { width: auto; min-width: 1180px; border-collapse: collapse; }
+        col.col-index { width: 52px; }
+        col.col-time { width: 190px; }
+        col.col-number { width: 160px; }
+        col.col-host { width: 250px; }
+        col.col-method { width: 90px; }
+        col.col-status { width: 90px; }
+        col.col-ua { width: 170px; }
+        col.col-msg { width: 80px; }
         thead tr { background: var(--bg); }
         thead th {
             padding: 10px 14px;
@@ -434,6 +442,9 @@
             .btn-quick,
             .btn-search {
                 width: 100%;
+            }
+            .field-group-time {
+                grid-template-columns: 1fr;
             }
             .time-display { justify-content: space-between; }
             .time-popup {

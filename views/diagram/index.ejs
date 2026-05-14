@@ -364,13 +364,13 @@
 
             const textBox = text.getBBox()
             const rectBox = rect.getBBox()
-            const centerX = rectBox.x + rectBox.width / 2
-            const centerY = rectBox.y + rectBox.height / 2
+            const rectCenterX = rectBox.x + rectBox.width / 2
+            const rectCenterY = rectBox.y + rectBox.height / 2
             const width = Math.ceil(textBox.width + endpointLabel.paddingX * 2)
             const height = Math.ceil(textBox.height + endpointLabel.paddingY * 2)
 
-            rect.setAttribute('x', centerX - width / 2)
-            rect.setAttribute('y', centerY - height / 2)
+            rect.setAttribute('x', rectCenterX - width / 2)
+            rect.setAttribute('y', rectCenterY - height / 2)
             rect.setAttribute('width', width)
             rect.setAttribute('height', height)
             rect.setAttribute('rx', 2)

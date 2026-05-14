@@ -109,7 +109,7 @@ export function createSeqHtml(seq) {
         }
 
         res.push(
-            `${item.src_host}-${isRequest(item.sip_method) ? '' : '-'}>${item.dst_host}: F${index} **${item.sip_method}** ${item.response_desc} ${dis.toFixed(2)}s`,
+            `${item.src_host}-${isRequest(item.sip_method) ? '' : '-'}>${item.dst_host}: F${index} ${item.sip_method} ${item.response_desc} ${dis.toFixed(2)}s`,
         )
     })
 

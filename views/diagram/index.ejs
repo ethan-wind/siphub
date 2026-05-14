@@ -152,7 +152,7 @@
         }
         .detail-panel-title {
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 400;
             color: #1f2329;
         }
         .detail-panel-meta {
@@ -334,7 +334,9 @@
 
         Array.from(svg.querySelectorAll('text')).filter(text => isEndpointLabel(text.textContent)).forEach(text => {
             text.setAttribute('font-size', endpointLabel.fontSize)
+            text.setAttribute('font-weight', '400')
             text.style.fontSize = `${endpointLabel.fontSize}px`
+            text.style.fontWeight = '400'
 
             const rect = findLabelBox(text)
             if (!rect) return
@@ -366,7 +368,7 @@
             const color = lineColors[flow[index] % lineColors.length]
             jq(this).find('path').first().css({ stroke: color, 'stroke-width': 2 })
             jq(this).find('polygon').css('fill', color)
-            jq(this).find('text').css({ fill: color, 'font-weight': 700 })
+            jq(this).find('text').css({ fill: color, 'font-weight': 400 })
         })
 
         selectDefaultMsg()

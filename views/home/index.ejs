@@ -22,6 +22,7 @@
             --text-placeholder: #bbbfc4;
             --danger: #f54a45;
             --success: #00b42a;
+            --control-height: 34px;
         }
 
         body {
@@ -151,15 +152,27 @@
             line-height: 1;
         }
         .field-input {
-            height: 34px;
+            height: var(--control-height);
+            min-height: var(--control-height);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 0 11px;
             font-size: 13px;
+            line-height: calc(var(--control-height) - 2px);
             color: var(--text);
             background: var(--surface);
             outline: none;
             transition: border-color 0.15s, box-shadow 0.15s;
+            vertical-align: top;
+        }
+        input[type="date"].field-input {
+            padding-right: 8px;
+        }
+        input[type="date"].field-input::-webkit-calendar-picker-indicator {
+            width: 15px;
+            height: 15px;
+            margin: 0;
+            padding: 0;
         }
         .field-input:focus {
             border-color: var(--accent);
@@ -175,7 +188,8 @@
         .divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
 
         .btn {
-            height: 34px;
+            height: var(--control-height);
+            min-height: var(--control-height);
             padding: 0 16px;
             border-radius: 6px;
             font-size: 13px;
@@ -184,7 +198,9 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 5px;
+            line-height: calc(var(--control-height) - 2px);
             transition: background 0.15s, opacity 0.15s;
             white-space: nowrap;
         }
@@ -206,7 +222,7 @@
 
         /* ── Table area ── */
         .table-area {
-            margin: 0 0 16px;
+            margin: 10px 0 16px;
             background: var(--surface);
             border-bottom: 1px solid var(--border);
             border-radius: 0;
@@ -333,12 +349,15 @@
         /* time picker */
         .time-picker-wrap { position: relative; }
         .time-display {
-            height: 34px; padding: 0 11px;
+            height: var(--control-height);
+            min-height: var(--control-height);
+            padding: 0 11px;
             border: 1px solid var(--border); border-radius: 6px;
             display: inline-flex; align-items: center; gap: 6px;
             font-size: 13px; color: var(--text);
             background: var(--surface); cursor: pointer;
             white-space: nowrap; width: fit-content;
+            line-height: calc(var(--control-height) - 2px);
             transition: border-color 0.15s, box-shadow 0.15s;
         }
         .time-display:focus {

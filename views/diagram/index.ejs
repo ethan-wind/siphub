@@ -235,6 +235,7 @@
     }
     const diagramCanvas = {
         margin: 12,
+        zoom: 1.65,
     }
     const lineColors = ['#0F766E','#2563EB','#B45309','#7C3AED','#BE123C','#047857','#C2410C','#4338CA','#0E7490','#A21CAF','#15803D','#B91C1C','#0369A1','#854D0E','#6D28D9','#0F766E','#1D4ED8','#9F1239']
     const flow = [<%- table.map(it => it.cseq_number) %>]
@@ -340,12 +341,14 @@
         const y = Math.floor(box.y - diagramCanvas.margin)
         const width = Math.ceil(box.width + diagramCanvas.margin * 2)
         const height = Math.ceil(box.height + diagramCanvas.margin * 2)
+        const displayWidth = Math.ceil(width * diagramCanvas.zoom)
+        const displayHeight = Math.ceil(height * diagramCanvas.zoom)
 
         svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`)
-        svg.setAttribute('width', width)
-        svg.setAttribute('height', height)
-        svg.style.width = `${width}px`
-        svg.style.height = `${height}px`
+        svg.setAttribute('width', displayWidth)
+        svg.setAttribute('height', displayHeight)
+        svg.style.width = `${displayWidth}px`
+        svg.style.height = `${displayHeight}px`
     }
 
     function init_diagram() {

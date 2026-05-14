@@ -14,15 +14,19 @@
             min-height: 100%;
         }
         :root {
-            --page-padding: 22px;
+            --page-padding: 6px;
             --panel-gap: 12px;
             --detail-width: 430px;
             --topbar-height: 40px;
+            --diagram-blue: #1e8ff4;
+            --diagram-green: #006b34;
+            --diagram-orange: #ff7a00;
+            --diagram-line: #8a8f98;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif;
             font-size: 13px;
-            background: #fff;
+            background: #f5f9fc;
             color: #1f2329;
             overflow: auto;
         }
@@ -60,7 +64,7 @@
         .page-body {
             width: 100vw;
             height: calc(100vh - var(--topbar-height));
-            padding: 0 var(--page-padding) var(--page-padding);
+            padding: var(--page-padding);
             display: grid;
             grid-template-columns: minmax(0, 1fr) var(--detail-width);
             gap: var(--panel-gap);
@@ -78,7 +82,7 @@
             border: 0;
             border-radius: 0;
             overflow: auto;
-            padding: 22px 0 0 0;
+            padding: 8px 4px 0;
         }
         #seq-a {
             display: block;
@@ -90,6 +94,24 @@
             margin: 0;
             max-width: none;
             max-height: none;
+        }
+        #seq-a svg text {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        #seq-a svg .endpoint-label {
+            fill: #fff;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        #seq-a svg .message-main {
+            fill: #004cff;
+            font-size: 8px;
+            font-weight: 700;
+        }
+        #seq-a svg .message-meta {
+            fill: #111827;
+            font-size: 6.8px;
+            font-weight: 400;
         }
 
         /* ── Detail panel (fixed 430px, collapsible) ── */
@@ -211,7 +233,7 @@
         <div id="seq-a"></div>
     </div>
 
-    <aside class="detail-panel collapsed" id="detailPanel">
+    <aside class="detail-panel" id="detailPanel">
         <button class="panel-collapse" id="panelCollapse" type="button" aria-label="切换信令详情">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h16"/><path d="M8 5v14"/></svg>
             <span class="panel-collapse-text"></span>
@@ -233,19 +255,20 @@
     const msgLineOffset = <%= msgLineOffset || 0 %>
     const endpointLabel = {
         fontSize: 10,
-        paddingX: 9,
-        paddingY: 5,
+        paddingX: 7,
+        paddingY: 4,
     }
     const diagramCanvas = {
-        margin: 12,
-        zoom: 1.65,
+        margin: 5,
+        zoom: 2.05,
     }
-    const lineColors = ['#0F766E','#2563EB','#B45309','#7C3AED','#BE123C','#047857','#C2410C','#4338CA','#0E7490','#A21CAF','#15803D','#B91C1C','#0369A1','#854D0E','#6D28D9','#0F766E','#1D4ED8','#9F1239']
     const flow = [<%- table.map(it => it.cseq_number) %>]
     const MSG_DATA = <%- JSON.stringify(table.map((v, i) => ({
         index: i,
         method: v.sip_method,
+        responseDesc: v.response_desc,
         time: v.create_time,
+        timestampMicro: v.timestamp_micro,
         protocol: v.sip_protocl,
         size: v.msg_len,
         raw: v.raw_msg,
@@ -281,6 +304,18 @@
         return /^\d{1,3}(?:\.\d{1,3}){3}_\d+$/.test(text.trim())
     }
 
+    function clearText(text) {
+        while (text.firstChild) text.removeChild(text.firstChild)
+    }
+
+    function addTspan(text, content, attrs = {}) {
+        const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
+        tspan.textContent = content
+        Object.entries(attrs).forEach(([key, value]) => tspan.setAttribute(key, value))
+        text.appendChild(tspan)
+        return tspan
+    }
+
     function findLabelBox(text) {
         const textBox = text.getBBox()
         const textCenter = {
@@ -311,10 +346,18 @@
         if (!svg) return
 
         Array.from(svg.querySelectorAll('text')).filter(text => isEndpointLabel(text.textContent)).forEach(text => {
+            const rawLabel = text.textContent.trim()
+            const originalBox = text.getBBox()
+            const centerX = originalBox.x + originalBox.width / 2
+            const centerY = originalBox.y + originalBox.height / 2
+
+            clearText(text)
             text.setAttribute('font-size', endpointLabel.fontSize)
-            text.setAttribute('font-weight', '400')
+            text.setAttribute('font-weight', '700')
             text.style.fontSize = `${endpointLabel.fontSize}px`
-            text.style.fontWeight = '400'
+            text.style.fontWeight = '700'
+            text.classList.add('endpoint-label')
+            addTspan(text, rawLabel, { x: centerX, y: centerY + 3 })
 
             const rect = findLabelBox(text)
             if (!rect) return
@@ -330,6 +373,82 @@
             rect.setAttribute('y', centerY - height / 2)
             rect.setAttribute('width', width)
             rect.setAttribute('height', height)
+            rect.setAttribute('rx', 2)
+            rect.setAttribute('ry', 2)
+            rect.setAttribute('fill', '#1e8ff4')
+            rect.setAttribute('stroke', '#1e8ff4')
+        })
+    }
+
+    function parseMsgTime(m) {
+        const base = Date.parse(String(m.time || '').replace(' ', 'T'))
+        const micro = Number(m.timestampMicro || 0)
+        return Number.isNaN(base) ? 0 : base + micro / 1000
+    }
+
+    function formatTimeLabel(m) {
+        const parts = String(m.time || '').split(' ')
+        return parts.length > 1 ? parts[1] : (m.time || '')
+    }
+
+    function formatDelta(index) {
+        if (index <= 0) return '+0 ms'
+        const prev = parseMsgTime(MSG_DATA[index - 1])
+        const curr = parseMsgTime(MSG_DATA[index])
+        const delta = Math.max(0, curr - prev)
+        const value = delta >= 100 ? Math.round(delta) : Number(delta.toFixed(2))
+        return `+${value} ms`
+    }
+
+    function isRequestMessage(m) {
+        return !/^\d+$/.test(String(m.method || ''))
+    }
+
+    function mainMessageLabel(m) {
+        if (isRequestMessage(m)) return m.method || ''
+        return `${m.method || ''}${m.responseDesc ? ` [${m.responseDesc}]` : ''}`
+    }
+
+    function styleAgentLines() {
+        const svg = document.querySelector('#seq-a svg')
+        if (!svg) return
+
+        Array.from(svg.querySelectorAll('line, path')).forEach(item => {
+            const stroke = item.getAttribute('stroke') || item.style.stroke
+            const fill = item.getAttribute('fill') || item.style.fill
+            if (stroke !== '#000000' && stroke !== 'black') return
+            if (fill && fill !== 'none') return
+
+            const box = item.getBBox()
+            if (box.height > 40 && box.width < 2) {
+                item.setAttribute('stroke', '#8a8f98')
+                item.setAttribute('stroke-width', '0.5')
+                item.setAttribute('stroke-dasharray', '1.5,1.5')
+            }
+        })
+    }
+
+    function styleMessages() {
+        jq('g.region:has(polygon)').each(function (index) {
+            const m = MSG_DATA[index]
+            if (!m) return
+            const request = isRequestMessage(m)
+            const color = request ? '#006b34' : '#ff7a00'
+            const text = this.querySelector('text')
+
+            jq(this).find('path').first().css({ stroke: color, 'stroke-width': 1.2 })
+            jq(this).find('polygon').css({ fill: color, stroke: color })
+
+            if (!text) return
+            const box = text.getBBox()
+            const centerX = box.x + box.width / 2
+            const y = box.y + 4
+            clearText(text)
+            text.setAttribute('text-anchor', 'middle')
+            text.setAttribute('font-family', 'Arial, Helvetica, sans-serif')
+            text.setAttribute('font-size', '8')
+            addTspan(text, mainMessageLabel(m), { x: centerX, y, class: 'message-main' })
+            addTspan(text, `[${index}] ${formatTimeLabel(m)} [${formatDelta(index)}]`, { x: centerX, dy: 8, class: 'message-meta' })
         })
     }
 
@@ -357,17 +476,12 @@
     function init_diagram() {
         gram = new sd(code, { container: document.getElementById('seq-a') })
         compactEndpointLabels()
+        styleAgentLines()
+        styleMessages()
         normalizeDiagramCanvas()
 
         gram.addEventListener('click', e => {
             if (e.type === 'connect') { gram.setHighlight(e.ln); showMsg(e.ln - msgLineOffset) }
-        })
-
-        jq('g.region:has(polygon)').each(function (index) {
-            const color = lineColors[flow[index] % lineColors.length]
-            jq(this).find('path').first().css({ stroke: color, 'stroke-width': 2 })
-            jq(this).find('polygon').css('fill', color)
-            jq(this).find('text').css({ fill: color, 'font-weight': 400 })
         })
 
         selectDefaultMsg()

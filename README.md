@@ -56,8 +56,6 @@ docker build -t siphub:v1 . --push
 - LogLevel: 日志级别, 默认debug
 - QueryLimit: 一次性查询的行数，默认10
 - dataKeepDays: 数据保留几天，默认3
-- LoginUser: 登录用户名，默认siphub
-- LoginPasswd: 登录密码，默认123456@Aa
 - AuthSecret: 登录态签名密钥，生产环境建议设置为随机字符串
 - AuthSessionSeconds: 普通登录有效期，默认7200秒
 - AuthRememberSeconds: 勾选记住我后的有效期，默认604800秒

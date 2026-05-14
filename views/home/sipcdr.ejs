@@ -9,7 +9,6 @@
         <tr>
             <th>序号</th>
             <th>时间</th>
-            <th>时长</th>
             <th>主叫号码</th>
             <th>主叫域名</th>
             <th>被叫号码</th>
@@ -29,7 +28,6 @@
         <tr>
             <td class="td-index"><%= i + 1 %></td>
             <td class="td-mono td-muted"><%= v.day %> <%= v.startTime %></td>
-            <td class="td-mono td-muted"><%= v.duration || '-' %></td>
             <td><a class="link-caller" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.caller %></a></td>
             <td class="td-mono td-muted td-host" title="<%= (v.srcHost||'').replace(/_/g,':') %>"><%= (v.srcHost||'').replace(/_/g,':') %></td>
             <td><a class="link-caller" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.callee %></a></td>

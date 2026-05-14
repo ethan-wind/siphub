@@ -7,6 +7,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
         SIP 查询
     </div>
+    <div class="topbar-user" title="<%= currentUser || '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+        <span><%= currentUser || '' %></span>
+    </div>
     <form class="logout-form" method="post" action="/logout">
         <button class="logout-btn" type="submit">退出登录</button>
     </form>

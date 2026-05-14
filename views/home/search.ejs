@@ -12,6 +12,11 @@
             </div>
 
             <div class="field-group">
+                <label class="field-label" for="callid">CALL-ID</label>
+                <input id="callid" name="callid" type="text" placeholder="精确匹配 Call-ID" class="field-input w-280" autocomplete="off">
+            </div>
+
+            <div class="field-group">
                 <label class="field-label" for="day">日期</label>
                 <input id="day" name="day" type="date" value="<%= day %>" class="field-input w-160">
             </div>
@@ -57,42 +62,7 @@
             </div>
         </div>
 
-        <details class="filter-more">
-            <summary>
-                <span>高级筛选</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-            </summary>
-            <div class="filter-more-body">
-                <div class="field-group">
-                    <label class="field-label" for="callid">Call-ID</label>
-                    <input id="callid" name="callid" type="text" placeholder="精确匹配 Call-ID" class="field-input w-280" autocomplete="off">
-                </div>
-                <div class="field-group">
-                    <label class="field-label" for="cseq_method">方法</label>
-                    <select id="cseq_method" name="cseq_method" class="field-input w-120">
-                        <option value="">全部</option>
-                        <option value="INVITE">INVITE</option>
-                        <option value="REGISTER">REGISTER</option>
-                        <option value="BYE">BYE</option>
-                        <option value="CANCEL">CANCEL</option>
-                        <option value="OPTIONS">OPTIONS</option>
-                        <option value="MESSAGE">MESSAGE</option>
-                    </select>
-                </div>
-                <div class="field-group">
-                    <label class="field-label" for="src_host">源地址</label>
-                    <input id="src_host" name="src_host" type="text" placeholder="IP 或域名前缀" class="field-input w-180" autocomplete="off">
-                </div>
-                <div class="field-group">
-                    <label class="field-label" for="dst_host">目的地址</label>
-                    <input id="dst_host" name="dst_host" type="text" placeholder="IP 或域名前缀" class="field-input w-180" autocomplete="off">
-                </div>
-                <div class="field-group">
-                    <label class="field-label" for="msg_min">最少消息</label>
-                    <input id="msg_min" name="msg_min" type="number" min="1" step="1" value="1" class="field-input w-120">
-                </div>
-            </div>
-        </details>
+        <input type="hidden" name="msg_min" value="1">
 
         <button type="submit" class="btn btn-primary btn-search">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>

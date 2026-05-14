@@ -59,7 +59,8 @@ app.get('/', requirePageAuth, asyncHandler(async function (req, res) {
     day,
     start,
     stop,
-    table: result.rows
+    table: result.rows,
+    currentUser: AppEnv.LoginUser
   })
 }))
 

@@ -90,7 +90,14 @@ export function getProtocolName(num) {
 }
 
 export function createSeqHtml(seq) {
-    const res = []
+    const agents = []
+    seq.forEach(item => {
+        if (!agents.includes(item.src_host)) agents.push(item.src_host)
+        if (!agents.includes(item.dst_host)) agents.push(item.dst_host)
+    })
+
+    const res = agents.length > 0 ? [`begin ${agents.join(', ')}`] : []
+    const msgLineOffset = res.length
 
     seq.forEach((item, index) => {
         let dis = 0
@@ -110,5 +117,6 @@ export function createSeqHtml(seq) {
 
     return {
         html: res.join('\n'),
+        msgLineOffset,
     }
 }

@@ -9,19 +9,25 @@
     <link rel="stylesheet" href="/css/diagram.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; }
+        html, body {
+            min-height: 100%;
+        }
+        :root {
+            --diagram-width: 1420px;
+            --diagram-height: 900px;
+            --detail-width: 480px;
+            --topbar-height: 40px;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif;
             font-size: 13px;
-            background: #f5f7fa;
+            background: #fff;
             color: #1f2329;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            overflow: auto;
         }
 
         .topbar {
-            flex: 0 0 48px;
+            height: var(--topbar-height);
             background: #fff;
             border-bottom: 1px solid #e4e7ed;
             padding: 0 16px;
@@ -51,57 +57,71 @@
         }
 
         .page-body {
-            flex: 1 1 auto;
-            display: flex;
-            gap: 12px;
-            padding: 12px 16px;
-            min-height: 0;
-            overflow: auto;
+            position: relative;
+            width: calc(var(--diagram-width) + var(--detail-width) + 44px);
+            height: var(--diagram-height);
+            padding: 24px;
+            overflow: visible;
         }
 
-        /* ── Diagram area (fixed 1100px) ── */
+        /* ── Diagram area (fixed canvas) ── */
         .diagram-wrap {
-            flex: 0 0 1100px;
-            height: 100%;
+            width: var(--diagram-width);
+            height: calc(var(--diagram-height) - 48px);
             background: #fff;
-            border: 1px solid #e4e7ed;
-            border-radius: 6px;
+            border: 0;
+            border-radius: 0;
             overflow: auto;
-            padding: 16px;
+            padding: 22px 0 0 0;
         }
         #seq-a { display: block; }
-        #seq-a svg { display: block; margin: 0 auto; }
+        #seq-a svg { display: block; margin: 0; }
 
         /* ── Detail panel (fixed 480px, collapsible) ── */
         .detail-panel {
-            flex: 0 0 480px;
-            height: 100%;
+            position: absolute;
+            top: 24px;
+            left: calc(24px + var(--diagram-width) + 12px);
+            width: var(--detail-width);
+            height: calc(var(--diagram-height) - 48px);
             background: #fff;
             border: 1px solid #e4e7ed;
             border-radius: 6px;
             display: flex;
             overflow: hidden;
-            transition: flex-basis 0.2s ease;
+            transition: width 0.2s ease;
         }
-        .detail-panel.collapsed { flex-basis: 36px; }
+        .detail-panel.collapsed { width: 126px; height: 34px; }
 
         .panel-collapse {
             flex-shrink: 0;
-            width: 36px;
-            height: 100%;
-            background: transparent;
-            border: 0;
-            border-right: 1px solid #e4e7ed;
+            width: 100%;
+            height: 34px;
+            background: linear-gradient(#f6f6f6, #e5e5e5);
+            border: 1px solid #c8c8c8;
+            border-radius: 4px;
             cursor: pointer;
-            color: #8a94a6;
-            display: grid;
-            place-items: center;
+            color: #2f343b;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 14px;
             transition: background 0.1s, color 0.1s;
         }
-        .panel-collapse:hover { background: #f7f8fc; color: #4e6ef2; }
-        .panel-collapse svg { transition: transform 0.2s; }
-        .detail-panel.collapsed .panel-collapse { border-right: 0; }
-        .detail-panel.collapsed .panel-collapse svg { transform: rotate(180deg); }
+        .panel-collapse:hover { background: linear-gradient(#fff, #e9e9e9); color: #111827; }
+        .panel-collapse svg { width: 15px; height: 15px; }
+        .panel-collapse-text::before { content: "隐藏信令详情"; }
+        .detail-panel.collapsed .panel-collapse-text::before { content: "显示信令详情"; }
+        .detail-panel:not(.collapsed) .panel-collapse {
+            width: 36px;
+            height: 100%;
+            border: 0;
+            border-right: 1px solid #e4e7ed;
+            border-radius: 0;
+            background: transparent;
+        }
+        .detail-panel:not(.collapsed) .panel-collapse-text { display: none; }
 
         .detail-panel-body {
             flex: 1 1 auto;
@@ -176,9 +196,10 @@
         <div id="seq-a"></div>
     </div>
 
-    <aside class="detail-panel" id="detailPanel">
+    <aside class="detail-panel collapsed" id="detailPanel">
         <button class="panel-collapse" id="panelCollapse" type="button" aria-label="切换信令详情">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h16"/><path d="M8 5v14"/></svg>
+            <span class="panel-collapse-text"></span>
         </button>
         <div class="detail-panel-body">
             <div class="detail-panel-header">
@@ -194,6 +215,7 @@
     const jq = jQuery
     const sd = SequenceDiagram
     const code = `<%- seq %>`
+    const msgLineOffset = <%= msgLineOffset || 0 %>
     const lineColors = ['#8A2BE2','#D2691E','#5F9EA0','#CD5C5C','#FF69B4','#90EE90','#FFA07A','#20B2AA','#87CEFA','#32CD32','#7B68EE','#C71585','#808000','#FF4500','#DA70D6','#00FF7F','#EE82EE','#9ACD32']
     const flow = [<%- table.map(it => it.cseq_number) %>]
     const MSG_DATA = <%- JSON.stringify(table.map((v, i) => ({
@@ -229,7 +251,7 @@
         gram = new sd(code, { container: document.getElementById('seq-a') })
 
         gram.addEventListener('click', e => {
-            if (e.type === 'connect') { gram.setHighlight(e.ln); showMsg(e.ln) }
+            if (e.type === 'connect') { gram.setHighlight(e.ln); showMsg(e.ln - msgLineOffset) }
         })
 
         jq('g.region:has(polygon)').each(function (index) {

@@ -25,6 +25,6 @@ route.get('/call', asyncHandler(async (req, res) => {
     logger.debug(seq)
 
     res.render('diagram/index', {
-        seq: seq.html, table: rows
+        seq: seq.html, msgLineOffset: seq.msgLineOffset, table: rows
     })
 }))

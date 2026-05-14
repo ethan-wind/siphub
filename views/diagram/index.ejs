@@ -60,7 +60,7 @@
         .page-body {
             width: 100vw;
             height: calc(100vh - var(--topbar-height));
-            padding: var(--page-padding);
+            padding: 0 var(--page-padding) var(--page-padding);
             display: grid;
             grid-template-columns: minmax(0, 1fr) var(--detail-width);
             gap: var(--panel-gap);
@@ -126,13 +126,16 @@
         .panel-collapse-text::before { content: "隐藏信令详情"; }
         .detail-panel.collapsed .panel-collapse-text::before { content: "显示信令详情"; }
         .detail-panel:not(.collapsed) .panel-collapse {
-            width: 36px;
+            width: 22px;
             height: 100%;
             border: 0;
             border-right: 1px solid #e4e7ed;
             border-radius: 0;
             background: transparent;
+            align-self: stretch;
+            padding: 0;
         }
+        .detail-panel:not(.collapsed) .panel-collapse svg { width: 13px; height: 13px; }
         .detail-panel:not(.collapsed) .panel-collapse-text { display: none; }
 
         .detail-panel-body {

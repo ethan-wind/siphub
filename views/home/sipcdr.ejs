@@ -7,7 +7,7 @@
 <table>
     <thead>
         <tr>
-            <th>#</th>
+            <th>序号</th>
             <th>时间</th>
             <th>主叫号码</th>
             <th>主叫域名</th>
@@ -21,7 +21,7 @@
         <% for (let i = 0; i < table.length; i++) { const v = table[i]; %>
         <tr>
             <td class="td-index"><%= i %></td>
-            <td class="td-mono td-muted"><%= v.startTime %></td>
+            <td class="td-mono td-muted"><%= v.day %> <%= v.startTime %></td>
             <td><a class="link-caller" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.caller %></a></td>
             <td class="td-mono td-muted"><%= (v.srcHost||'').replace(/_/g,':') %></td>
             <td><a class="link-caller" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.callee %></a></td>

@@ -14,9 +14,9 @@
             min-height: 100%;
         }
         :root {
-            --diagram-width: 1420px;
-            --diagram-height: 900px;
-            --detail-width: 480px;
+            --page-padding: 22px;
+            --panel-gap: 12px;
+            --detail-width: 430px;
             --topbar-height: 40px;
         }
         body {
@@ -58,17 +58,22 @@
         }
 
         .page-body {
-            position: relative;
-            width: calc(var(--diagram-width) + var(--detail-width) + 44px);
-            height: var(--diagram-height);
-            padding: 24px;
-            overflow: visible;
+            width: 100vw;
+            height: calc(100vh - var(--topbar-height));
+            padding: var(--page-padding);
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) var(--detail-width);
+            gap: var(--panel-gap);
+            overflow: hidden;
+        }
+        .page-body:has(.detail-panel.collapsed) {
+            grid-template-columns: minmax(0, 1fr) 126px;
         }
 
         /* ── Diagram area (fixed canvas) ── */
         .diagram-wrap {
-            width: var(--diagram-width);
-            height: calc(var(--diagram-height) - 48px);
+            min-width: 0;
+            height: 100%;
             background: #fff;
             border: 0;
             border-radius: 0;
@@ -87,13 +92,10 @@
             max-height: none;
         }
 
-        /* ── Detail panel (fixed 480px, collapsible) ── */
+        /* ── Detail panel (fixed 430px, collapsible) ── */
         .detail-panel {
-            position: absolute;
-            top: 24px;
-            left: calc(24px + var(--diagram-width) + 12px);
             width: var(--detail-width);
-            height: calc(var(--diagram-height) - 48px);
+            height: 100%;
             background: #fff;
             border: 1px solid #e4e7ed;
             border-radius: 6px;
@@ -231,6 +233,9 @@
         paddingX: 9,
         paddingY: 5,
     }
+    const diagramCanvas = {
+        margin: 12,
+    }
     const lineColors = ['#0F766E','#2563EB','#B45309','#7C3AED','#BE123C','#047857','#C2410C','#4338CA','#0E7490','#A21CAF','#15803D','#B91C1C','#0369A1','#854D0E','#6D28D9','#0F766E','#1D4ED8','#9F1239']
     const flow = [<%- table.map(it => it.cseq_number) %>]
     const MSG_DATA = <%- JSON.stringify(table.map((v, i) => ({
@@ -324,9 +329,29 @@
         })
     }
 
+    function normalizeDiagramCanvas() {
+        const svg = document.querySelector('#seq-a svg')
+        if (!svg) return
+
+        const box = svg.getBBox()
+        if (!box.width || !box.height) return
+
+        const x = Math.floor(box.x - diagramCanvas.margin)
+        const y = Math.floor(box.y - diagramCanvas.margin)
+        const width = Math.ceil(box.width + diagramCanvas.margin * 2)
+        const height = Math.ceil(box.height + diagramCanvas.margin * 2)
+
+        svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`)
+        svg.setAttribute('width', width)
+        svg.setAttribute('height', height)
+        svg.style.width = `${width}px`
+        svg.style.height = `${height}px`
+    }
+
     function init_diagram() {
         gram = new sd(code, { container: document.getElementById('seq-a') })
         compactEndpointLabels()
+        normalizeDiagramCanvas()
 
         gram.addEventListener('click', e => {
             if (e.type === 'connect') { gram.setHighlight(e.ln); showMsg(e.ln - msgLineOffset) }

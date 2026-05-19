@@ -5,6 +5,7 @@ const AUTH_COOKIE = 'siphub_auth'
 const CAPTCHA_COOKIE = 'siphub_captcha'
 const COOKIE_PATH = '/'
 const TOKEN_VERSION = 'v2'
+const LOGIN_CHALLENGE_VERSION = 'lc1'
 const loginAttempts = new Map()
 
 function getSecret() {
@@ -117,11 +118,46 @@ export function requirePageAuth(req, res, next) {
 
 export function requireApiAuth(req, res, next) {
     if (isAuthenticated(req)) return next()
-    res.status(401).json({ error: { code: 'UNAUTHORIZED', message: '鉴权失败' } })
+    res.status(401).json({ code: 'UNAUTHORIZED', message: '鉴权失败' })
 }
 
 export function checkCredentials(username, password) {
     return timingSafeEqual(username, AppEnv.LoginUser) && timingSafeEqual(password, AppEnv.LoginPasswd)
+}
+
+export function createLoginChallenge() {
+    const payload = Buffer.from(JSON.stringify({
+        v: LOGIN_CHALLENGE_VERSION,
+        exp: Date.now() + 5 * 60 * 1000,
+        nonce: crypto.randomBytes(16).toString('base64url')
+    })).toString('base64url')
+    return `${payload}.${hmac(payload)}`
+}
+
+function verifyLoginChallenge(challenge) {
+    const parts = String(challenge || '').split('.')
+    if (parts.length !== 2) return false
+
+    const [payload, sig] = parts
+    if (!timingSafeEqual(sig, hmac(payload))) return false
+
+    try {
+        const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+        return data.v === LOGIN_CHALLENGE_VERSION && Number(data.exp) >= Date.now()
+    } catch {
+        return false
+    }
+}
+
+export function checkCredentialsHash(username, passwordHash, challenge) {
+    if (!verifyLoginChallenge(challenge)) return false
+
+    const expectedHash = crypto
+        .createHash('sha256')
+        .update(`${username}:${AppEnv.LoginPasswd}:${challenge}`)
+        .digest('hex')
+
+    return timingSafeEqual(username, AppEnv.LoginUser) && timingSafeEqual(passwordHash, expectedHash)
 }
 
 export function isSecureRequest(req) {

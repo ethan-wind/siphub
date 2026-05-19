@@ -7,11 +7,12 @@ import { queryRecord } from './db.mjs'
 import { startCron } from './cron.mjs'
 import { AppEnv } from './env.mjs'
 import {
-  checkCredentials,
+  checkCredentialsHash,
   clearAuthCookie,
   clearCaptchaCookie,
   createAuthToken,
   createCaptcha,
+  createLoginChallenge,
   clearLoginFailures,
   getLoginLock,
   isAuthenticated,
@@ -42,6 +43,13 @@ function asyncHandler(fn) {
   return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
 }
 
+function renderLogin(res, status, error = '') {
+  res.status(status).render('home/login', {
+    error,
+    loginChallenge: createLoginChallenge()
+  })
+}
+
 app.get('/', requirePageAuth, asyncHandler(async function (req, res) {
   let n = dayjs()
   let day = n.format('YYYY-MM-DD')
@@ -70,29 +78,30 @@ app.get('/', requirePageAuth, asyncHandler(async function (req, res) {
 
 app.get('/login', function (req, res) {
   if (isAuthenticated(req)) return res.redirect('/')
-  res.render('home/login', { error: '' })
+  res.set('Cache-Control', 'no-store')
+  renderLogin(res, 200)
 })
 
 app.post('/login', function (req, res) {
-  const { username = '', password = '', captcha = '', remember } = req.body
+  const { username = '', passwordHash = '', loginChallenge = '', captcha = '', remember } = req.body
   const lock = getLoginLock(req, username)
 
   res.set('Cache-Control', 'no-store')
 
   if (lock) {
-    return res.status(429).render('home/login', { error: `登录失败次数过多，请 ${lock.retryAfter} 秒后再试` })
+    return renderLogin(res, 429, `登录失败次数过多，请 ${lock.retryAfter} 秒后再试`)
   }
 
   if (!verifyCaptcha(req, captcha)) {
     clearCaptchaCookie(req, res)
     recordLoginFailure(req, username)
-    return res.status(401).render('home/login', { error: '验证码错误或已过期' })
+    return renderLogin(res, 401, '验证码错误或已过期')
   }
 
-  if (!checkCredentials(username, password)) {
+  if (!checkCredentialsHash(username, passwordHash, loginChallenge)) {
     clearCaptchaCookie(req, res)
     recordLoginFailure(req, username)
-    return res.status(401).render('home/login', { error: '用户名或密码错误' })
+    return renderLogin(res, 401, '用户名或密码错误')
   }
 
   clearLoginFailures(req, username)

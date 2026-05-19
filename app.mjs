@@ -12,7 +12,10 @@ import {
   clearCaptchaCookie,
   createAuthToken,
   createCaptcha,
+  clearLoginFailures,
+  getLoginLock,
   isAuthenticated,
+  recordLoginFailure,
   requirePageAuth,
   renderCaptchaSvg,
   setAuthCookie,
@@ -22,6 +25,7 @@ import {
 
 const app = express()
 
+app.set('trust proxy', AppEnv.TrustProxy === 'yes')
 app.use(AppLoger())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(express.static('public'))
@@ -71,29 +75,42 @@ app.get('/login', function (req, res) {
 
 app.post('/login', function (req, res) {
   const { username = '', password = '', captcha = '', remember } = req.body
+  const lock = getLoginLock(req, username)
+
+  res.set('Cache-Control', 'no-store')
+
+  if (lock) {
+    return res.status(429).render('home/login', { error: `登录失败次数过多，请 ${lock.retryAfter} 秒后再试` })
+  }
 
   if (!verifyCaptcha(req, captcha)) {
+    clearCaptchaCookie(req, res)
+    recordLoginFailure(req, username)
     return res.status(401).render('home/login', { error: '验证码错误或已过期' })
   }
 
   if (!checkCredentials(username, password)) {
+    clearCaptchaCookie(req, res)
+    recordLoginFailure(req, username)
     return res.status(401).render('home/login', { error: '用户名或密码错误' })
   }
 
+  clearLoginFailures(req, username)
   const auth = createAuthToken(username, remember === 'on')
-  setAuthCookie(res, auth.token, auth.maxAge)
-  clearCaptchaCookie(res)
+  setAuthCookie(req, res, auth.token, auth.maxAge)
+  clearCaptchaCookie(req, res)
   res.redirect('/')
 })
 
-app.post('/logout', function (req, res) {
-  clearAuthCookie(res)
+app.post('/logout', requirePageAuth, function (req, res) {
+  clearAuthCookie(req, res)
   res.redirect('/login')
 })
 
 app.get('/captcha', function (req, res) {
   const captcha = createCaptcha()
-  setCaptchaCookie(res, captcha.token)
+  res.set('Cache-Control', 'no-store')
+  setCaptchaCookie(req, res, captcha.token)
   res.type('svg').send(renderCaptchaSvg(captcha.text))
 })
 

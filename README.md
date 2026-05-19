@@ -59,6 +59,11 @@ docker build -t siphub:v1 . --push
 - AuthSecret: 登录态签名密钥，生产环境建议设置为随机字符串
 - AuthSessionSeconds: 普通登录有效期，默认7200秒
 - AuthRememberSeconds: 勾选记住我后的有效期，默认604800秒
+- AuthMaxLoginAttempts: 登录失败锁定阈值，默认5次
+- AuthLoginWindowSeconds: 统计登录失败次数的时间窗口，默认900秒
+- AuthLockSeconds: 达到失败阈值后的锁定时长，默认900秒
+- AuthCookieSecure: Cookie Secure策略，可选auto/always/never，默认auto
+- TrustProxy: 是否信任反向代理转发头，可选yes/no，默认no。部署在HTTPS反向代理后建议设置为yes
 - Port: Web服务监听端口，默认3000
 
 # 架构图

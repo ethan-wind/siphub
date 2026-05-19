@@ -15,5 +15,10 @@ export const AppEnv = {
     AuthSecret: process.env.AuthSecret,
     AuthSessionSeconds: process.env.AuthSessionSeconds ? parseInt(process.env.AuthSessionSeconds) : 2 * 60 * 60,
     AuthRememberSeconds: process.env.AuthRememberSeconds ? parseInt(process.env.AuthRememberSeconds) : 7 * 24 * 60 * 60,
+    AuthMaxLoginAttempts: process.env.AuthMaxLoginAttempts ? parseInt(process.env.AuthMaxLoginAttempts) : 5,
+    AuthLoginWindowSeconds: process.env.AuthLoginWindowSeconds ? parseInt(process.env.AuthLoginWindowSeconds) : 15 * 60,
+    AuthLockSeconds: process.env.AuthLockSeconds ? parseInt(process.env.AuthLockSeconds) : 15 * 60,
+    AuthCookieSecure: process.env.AuthCookieSecure ?? 'auto',
+    TrustProxy: process.env.TrustProxy ?? 'no',
     Port: process.env.Port ? parseInt(process.env.Port) : 3000
 }

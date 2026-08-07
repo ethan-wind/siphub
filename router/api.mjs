@@ -12,10 +12,20 @@ function asyncHandler(fn) {
     return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
 }
 
+export function createRecordViewModel(result, filters) {
+    return {
+        table: result.rows,
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize,
+        filters
+    }
+}
+
 route.post('/record', asyncHandler(async (req, res) => {
     let re = await queryRecord(req.body)
     logger.info(`row length ${re.rows.length}`)
-    res.render('home/sipcdr', { ...re, filters: req.body })
+    res.render('home/sipcdr', createRecordViewModel(re, req.body))
 }))
 
 route.get('/call', asyncHandler(async (req, res) => {

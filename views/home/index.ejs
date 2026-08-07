@@ -466,11 +466,11 @@
 <body>
 
 <%- include('navbar') %>
-<%- include('search', {day, start, stop}) %>
+<%- include('search', {day, start, stop, pageSize}) %>
 
 <div class="table-area">
     <div id="cdr">
-        <%- include('sipcdr', {table}) %>
+        <%- include('sipcdr', {table, total, page, pageSize, filters: {}}) %>
     </div>
     <div class="table-toolbar">
         <span class="result-count" id="result-count"></span>

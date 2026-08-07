@@ -66,6 +66,17 @@ export async function queryRecord(c) {
     logger.info(c)
     let wh = whereBuilder(c)
     const msgMin = Math.max(1, Number.parseInt(c.msg_min, 10) || 1)
+    const page = Math.max(1, Number.parseInt(c.page, 10) || 1)
+    const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.pageSize, 10) || AppEnv.QueryLimit))
+    const offset = (page - 1) * pageSize
+    const tableName = mysql.escapeId(getTableNameByDay(c.day))
+    const grouped = `
+        select sip_call_id
+        from ${tableName}
+        where ${wh.join(' and ')}
+        group by sip_call_id
+        having count(*) >= ${msgMin}`
+    const countSql = `select count(*) as total from (${grouped}) grouped_records`
     const sql = `
       select
         sip_call_id as "CallID",
@@ -84,19 +95,19 @@ export async function queryRecord(c) {
         max(dst_host) as "dstHost",
         group_concat(DISTINCT CASE WHEN response_code BETWEEN 170 AND 190 THEN response_code END) AS "tempCode"
     from
-        ${mysql.escapeId(getTableNameByDay(c.day))}
+        ${tableName}
     where
         ${wh.join(' and ')}
     group by sip_call_id 
     having count(*) >= ${msgMin}
     order by "startTime" desc
-    limit ${AppEnv.QueryLimit}
+    limit ${pageSize} offset ${offset}
     `
 
     logger.info(sql)
-    const res = await query(sql)
+    const [res, count] = await Promise.all([query(sql), query(countSql)])
 
-    return res
+    return { rows: res.rows, total: Number(count.rows[0]?.total || 0), page, pageSize }
 }
 
 

@@ -38,7 +38,7 @@
             const statusClass = !finalCode ? 'status-empty' : (finalCode >= 400 ? 'status-error' : (finalCode >= 300 ? 'status-warn' : ''));
         %>
         <tr>
-            <td class="td-index"><%= i + 1 %></td>
+            <td class="td-index"><%= ((page || 1) - 1) * (pageSize || table.length) + i + 1 %></td>
             <td class="td-mono td-muted"><%= v.day %> <%= v.startTime %></td>
             <td><a class="link-caller" href="/api/call?id=<%= encodeURIComponent(v.CallID) %>&day=<%= v.day %>" target="_blank"><%= v.caller %></a></td>
             <td class="td-mono td-muted td-host" title="<%= (v.srcHost||'').replace(/_/g,':') %>"><%= (v.srcHost||'').replace(/_/g,':') %></td>
@@ -52,4 +52,16 @@
         <% } %>
     </tbody>
 </table>
+<% const totalPages = Math.max(1, Math.ceil((total || table.length) / (pageSize || table.length || 1))); %>
+<% if (totalPages > 1) { %>
+<div class="pagination" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 0">
+    <button class="btn btn-default" type="button" <%= (page || 1) <= 1 ? 'disabled' : '' %>
+        hx-post="/api/record" hx-target="#cdr" hx-swap="innerHTML" hx-include="#search-form"
+        hx-vals='{"page":<%= (page || 1) - 1 %>}'>上一页</button>
+    <span>第 <%= page || 1 %> / <%= totalPages %> 页，共 <%= total || 0 %> 条</span>
+    <button class="btn btn-default" type="button" <%= (page || 1) >= totalPages ? 'disabled' : '' %>
+        hx-post="/api/record" hx-target="#cdr" hx-swap="innerHTML" hx-include="#search-form"
+        hx-vals='{"page":<%= (page || 1) + 1 %>}'>下一页</button>
+</div>
+<% } %>
 <% } %>

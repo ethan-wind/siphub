@@ -144,14 +144,14 @@
         }
         .captcha-row {
             display: grid;
-            grid-template-columns: 1fr 100px;
+            grid-template-columns: 1fr 130px;
             gap: 20px;
             align-items: center;
         }
         .captcha-img {
-            width: 100px;
-            height: 32px;
-            object-fit: cover;
+            width: 130px;
+            height: 42px;
+            display: block;
             cursor: pointer;
         }
         .remember {
@@ -220,7 +220,7 @@
                 font-size: 23px;
                 margin-bottom: 34px;
             }
-            .captcha-row { grid-template-columns: 1fr 96px; gap: 10px; }
+            .captcha-row { grid-template-columns: minmax(0, 1fr) 130px; gap: 10px; }
         }
     </style>
 </head>

@@ -263,8 +263,11 @@ export function renderCaptchaSvg(text) {
     }).join('')
 
     return `<svg xmlns="http://www.w3.org/2000/svg" width="130" height="42" viewBox="0 0 130 42">
+        <defs><filter id="captcha-blur"><feGaussianBlur stdDeviation="0.45"/></filter></defs>
         <rect width="130" height="42" fill="#fbfbfb"/>
-        ${lines}
-        <g font-family="Menlo, Consolas, monospace" font-size="23" font-weight="700" fill="#3f4a5a">${letters}</g>
+        <g filter="url(#captcha-blur)">
+            ${lines}
+            <g font-family="Menlo, Consolas, monospace" font-size="23" font-weight="700" fill="#3f4a5a">${letters}</g>
+        </g>
     </svg>`
 }

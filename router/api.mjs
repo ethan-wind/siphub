@@ -15,7 +15,7 @@ function asyncHandler(fn) {
 route.post('/record', asyncHandler(async (req, res) => {
     let re = await queryRecord(req.body)
     logger.info(`row length ${re.rows.length}`)
-    res.render('home/sipcdr', { table: re.rows })
+    res.render('home/sipcdr', { ...re, filters: req.body })
 }))
 
 route.get('/call', asyncHandler(async (req, res) => {

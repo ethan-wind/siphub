@@ -72,6 +72,9 @@ app.get('/', requirePageAuth, asyncHandler(async function (req, res) {
     start,
     stop,
     table: result.rows,
+    total: result.total,
+    page: result.page,
+    pageSize: result.pageSize,
     currentUser: AppEnv.LoginUser
   })
 }))

@@ -9,7 +9,7 @@ export const AppEnv = {
     cronTime: process.env.cronTime ?? '0 0 0 * * *',
     timeZone: process.env.timeZone ?? 'Asia/Shanghai',
     enableCron: process.env.enableCron ?? 'yes',
-    dataKeepDays: process.env.dataKeepDays ? parseInt(process.env.dataKeepDays) : 3,
+    dataKeepDays: process.env.dataKeepDays ? Number(process.env.dataKeepDays) : 3,
     LoginUser: process.env.LoginUser ?? 'siphub',
     LoginPasswd: process.env.LoginPasswd ?? '123456@Aa',
     AuthSecret: process.env.AuthSecret,

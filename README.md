@@ -55,7 +55,10 @@ docker build -t siphub:v1 . --push
 - DBName: 数据库名，默认siphub,
 - LogLevel: 日志级别, 默认debug
 - QueryLimit: 一次性查询的行数，默认10
-- dataKeepDays: 数据保留几天，默认3
+- dataKeepDays: 保留最近几天的历史归档表，默认3，须为非负整数；当天的 `records` 主表另行保留。按 `timeZone` 的日期判断，例如9月30日设置为3时，保留9月27日起的历史表，删除更早的 `records_YYYYMMDD` 表；0表示不保留今天之前的历史表。临时表、备份表不参与清理，主表中的数据由每日分表任务归档后再参与清理。
+- enableCron: 是否启用分表和清理任务，默认yes；设为no时，dataKeepDays不会触发清理
+- cronTime: 分表和清理的执行时间，默认 `0 0 0 * * *`（每天零点）；配置在服务启动时读取，修改后需重启或重建容器，并在下一次定时任务执行时生效
+- timeZone: 定时任务及历史表日期计算的时区，默认Asia/Shanghai
 - AuthSecret: 登录态签名密钥，生产环境建议设置为随机字符串
 - AuthSessionSeconds: 普通登录有效期，默认7200秒
 - AuthRememberSeconds: 勾选记住我后的有效期，默认604800秒

@@ -8,8 +8,17 @@ export function startCron() {
         AppEnv.cronTime,
         async function () {
             logger.info('cron start')
-            await tableSplit()
-            await deleteTable()
+            try {
+                await tableSplit()
+            } catch (error) {
+                logger.error('cron tableSplit failed', error)
+            }
+            try {
+                await deleteTable()
+            } catch (error) {
+                logger.error('cron deleteTable failed', error)
+            }
+            logger.info('cron tick complete')
         },
         function () {
             logger.info('cron complete')

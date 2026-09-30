@@ -3,6 +3,11 @@ import { AppEnv } from './env.mjs'
 import { logger } from './logger.mjs'
 import { whereBuilder } from './util.mjs'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const pool = mysql.createPool({
     user: AppEnv.DBUser,
@@ -30,7 +35,7 @@ function getTableNameByDay(day) {
 }
 
 export async function tableSplit() {
-    let tableDay = dayjs().subtract(1, 'day').format("YYYYMMDD")
+    let tableDay = dayjs().tz(AppEnv.timeZone).subtract(1, 'day').format("YYYYMMDD")
 
     const createSql = `CREATE TABLE IF NOT EXISTS records_tmp LIKE records`
     const renameSql = `RENAME TABLE records TO records_${tableDay}, records_tmp TO records`
@@ -42,21 +47,29 @@ export async function tableSplit() {
 }
 
 export async function deleteTable() {
+    if (!Number.isSafeInteger(AppEnv.dataKeepDays) || AppEnv.dataKeepDays < 0) {
+        throw new Error('dataKeepDays 必须是非负整数')
+    }
+    const cutoff = dayjs().tz(AppEnv.timeZone).subtract(AppEnv.dataKeepDays, 'day').format('YYYYMMDD')
     let res = await query(`
         SELECT table_name
         FROM information_schema.tables
         WHERE table_schema = DATABASE() and 
         table_name like 'records\\_%' 
-        order by table_name desc 
-        limit ${AppEnv.dataKeepDays}, 18446744073709551615;
+        order by table_name;
     `)
 
-    if (res.rows.length === 0) {
+    // 仅处理日期归档表，不能把临时表或备份表计入保留范围。
+    const expired = res.rows.filter(({ table_name }) => {
+        const match = /^records_(\d{8})$/.exec(table_name)
+        return match && dayjs(match[1]).format('YYYYMMDD') === match[1] && match[1] < cutoff
+    })
+
+    if (expired.length === 0) {
         logger.info("没有需要删除的表")
     }
 
-    for (const ele of res.rows) {
-        console.log(ele.table_name)
+    for (const ele of expired) {
         logger.info(`try delete table ${ele.table_name}`)
         await query(`DROP TABLE IF EXISTS ${mysql.escapeId(ele.table_name)}`)
     }
@@ -100,7 +113,7 @@ export async function queryRecord(c) {
         ${wh.join(' and ')}
     group by sip_call_id 
     having count(*) >= ${msgMin}
-    order by "startTime" desc
+    order by min(create_time) desc, sip_call_id asc
     limit ${pageSize} offset ${offset}
     `
 
